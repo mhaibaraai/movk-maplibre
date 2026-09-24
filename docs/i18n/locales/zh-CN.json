@@ -24,7 +24,8 @@
     "layers": {
       "builtin": "内置类型",
       "dataDriven": "数据驱动",
-      "buffers": "缓冲区"
+      "buffers": "缓冲区",
+      "analysis": "分析与辅助"
     },
     "controls": {
       "interactive": "交互控件",
@@ -43,7 +44,8 @@
     "extensions": {
       "draw": "绘制",
       "basemap": "底图与坐标",
-      "multiMap": "多图联动"
+      "multiMap": "多图联动",
+      "protocols": "数据协议"
     },
     "composables": {
       "context": "上下文注入",

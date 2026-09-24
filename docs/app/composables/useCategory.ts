@@ -36,6 +36,11 @@ export function useCategory() {
         id: 'buffers',
         title: t('category.layers.buffers'),
         icon: 'i-lucide-circle-dashed'
+      },
+      {
+        id: 'analysis',
+        title: t('category.layers.analysis'),
+        icon: 'i-lucide-grid-3x3'
       }
     ],
     'controls': [
@@ -99,6 +104,11 @@ export function useCategory() {
         id: 'multi-map',
         title: t('category.extensions.multiMap'),
         icon: 'i-lucide-columns-2'
+      },
+      {
+        id: 'protocols',
+        title: t('category.extensions.protocols'),
+        icon: 'i-lucide-file-stack'
       }
     ],
     'composables': [

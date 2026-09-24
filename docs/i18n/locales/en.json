@@ -24,7 +24,8 @@
     "layers": {
       "builtin": "Built-in Types",
       "dataDriven": "Data-Driven",
-      "buffers": "Buffers"
+      "buffers": "Buffers",
+      "analysis": "Analysis & Overlays"
     },
     "controls": {
       "interactive": "Interactive",
@@ -43,7 +44,8 @@
     "extensions": {
       "draw": "Drawing",
       "basemap": "Basemaps & Coordinates",
-      "multiMap": "Multi-map"
+      "multiMap": "Multi-map",
+      "protocols": "Data Protocols"
     },
     "composables": {
       "context": "Context Injection",
