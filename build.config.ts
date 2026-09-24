@@ -9,7 +9,7 @@ export default defineBuildConfig({
   ],
   declaration: true,
   failOnWarn: false,
-  externals: ['vite', 'maplibre-gl', 'terra-draw', 'terra-draw-maplibre-gl-adapter', 'lottie-web', 'vue', '@vueuse/core', 'unplugin', 'consola'],
+  externals: ['vite', 'maplibre-gl', 'terra-draw', 'terra-draw-maplibre-gl-adapter', 'lottie-web', 'pmtiles', '@geomatico/maplibre-cog-protocol', 'maplibre-contour', 'vue', '@vueuse/core', 'unplugin', 'consola'],
   hooks: {
     'mkdist:entry:options'(_ctx, _entry, options) {
       options.addRelativeDeclarationExtensions = false
