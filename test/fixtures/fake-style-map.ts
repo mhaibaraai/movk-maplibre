@@ -12,7 +12,7 @@ type Handler = (e?: unknown) => void
 export function fakeStyleMap(styleLayers: Array<Omit<FakeLayer, 'layout' | 'paint'> & Partial<Pick<FakeLayer, 'layout' | 'paint'>>> = []) {
   const handlers: Record<string, Set<Handler>> = {}
   const layers = new Map<string, FakeLayer>()
-  const sources = new Set<string>()
+  const sources = new Map<string, Record<string, unknown>>()
   const toLayer = (spec: Omit<FakeLayer, 'layout' | 'paint'> & Partial<Pick<FakeLayer, 'layout' | 'paint'>>): FakeLayer =>
     ({ ...spec, layout: { ...spec.layout }, paint: { ...spec.paint } })
   for (const spec of styleLayers) layers.set(spec.id, toLayer(spec))
@@ -32,8 +32,11 @@ export function fakeStyleMap(styleLayers: Array<Omit<FakeLayer, 'layout' | 'pain
     removeControl(control: { onRemove: (map: unknown) => void }) {
       control.onRemove(self)
     },
+    sources,
     layoutCalls: [] as [string, string, unknown][],
     paintCalls: [] as [string, string, unknown][],
+    /** source 增量更新记录：[sourceId, 方法名, 参数] */
+    sourceCalls: [] as [string, string, unknown][],
     styleLoaded: true,
     on(type: string, a: unknown, b?: unknown) {
       (handlers[type] ??= new Set()).add((b ?? a) as Handler)
@@ -67,8 +70,14 @@ export function fakeStyleMap(styleLayers: Array<Omit<FakeLayer, 'layout' | 'pain
     },
     setFilter() {},
     setLayerZoomRange() {},
-    getSource: (id: string) => (sources.has(id) ? { setData() {} } : undefined),
-    addSource: (id: string) => sources.add(id),
+    getSource(id: string) {
+      if (!sources.has(id)) return undefined
+      const record = (method: string) => (arg: unknown) => {
+        self.sourceCalls.push([id, method, arg])
+      }
+      return { setData: record('setData'), setTiles: record('setTiles'), setUrl: record('setUrl') }
+    },
+    addSource: (id: string, spec: Record<string, unknown> = {}) => sources.set(id, spec),
     removeSource: (id: string) => sources.delete(id),
     /** 模拟 setStyle 整体替换：清空全部图层后装入新样式并派发 style.load */
     replaceStyle(next: Array<Omit<FakeLayer, 'layout' | 'paint'> & Partial<Pick<FakeLayer, 'layout' | 'paint'>>>) {
