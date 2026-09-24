@@ -38,6 +38,9 @@ export function fakeStyleMap(styleLayers: Array<Omit<FakeLayer, 'layout' | 'pain
     /** source 增量更新记录：[sourceId, 方法名, 参数] */
     sourceCalls: [] as [string, string, unknown][],
     styleLoaded: true,
+    zoom: 1,
+    /** 视口范围 [west, south, east, north] */
+    bounds: [-180, -85, 180, 85] as [number, number, number, number],
     on(type: string, a: unknown, b?: unknown) {
       (handlers[type] ??= new Set()).add((b ?? a) as Handler)
     },
@@ -89,9 +92,17 @@ export function fakeStyleMap(styleLayers: Array<Omit<FakeLayer, 'layout' | 'pain
     remove() {},
     getCanvas: () => ({ style: {} }),
     getCenter: () => ({ lng: 0, lat: 0 }),
-    getZoom: () => 1,
+    getZoom: () => self.zoom,
+    getBounds: () => {
+      const [west, south, east, north] = self.bounds
+      return { getWest: () => west, getSouth: () => south, getEast: () => east, getNorth: () => north }
+    },
     getBearing: () => 0,
     getPitch: () => 0,
+    setCenter() {},
+    setZoom() {},
+    setBearing() {},
+    setPitch() {},
     setStyle() {}
   }
   return self
