@@ -6,6 +6,8 @@ import type { RouteRecordRaw } from 'vue-router'
 import { $fetch } from 'ofetch'
 import ui from '@nuxt/ui/vue-plugin'
 import MaplibrePlugin from '@movk/maplibre/vue-plugin'
+import { registerPmtilesProtocol } from '#maplibre/utils/pmtiles'
+import { registerCogProtocol } from '#maplibre/utils/cog'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import App from './App.vue'
 
@@ -37,6 +39,10 @@ for (const [file, component] of Object.entries(localPages)) {
   const path = toRoutePath(file)
   routeMap.set(path, { path, component })
 }
+
+// 对齐 Nuxt playground 的 maplibre.protocols：在首个地图创建前同步注册
+registerPmtilesProtocol()
+registerCogProtocol()
 
 const router = createRouter({
   routes: [...routeMap.values()],

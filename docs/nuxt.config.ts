@@ -129,7 +129,8 @@ export default defineNuxtConfig({
   maplibre: {
     // OpenFreeMap 公开字体服务：空白样式与内置文字图层共用
     glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
-    textFont: ['Noto Sans Regular']
+    textFont: ['Noto Sans Regular'],
+    protocols: { pmtiles: true, cog: true }
   },
 
   mcp: {

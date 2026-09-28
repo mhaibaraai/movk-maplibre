@@ -2,7 +2,7 @@
   "name": "@movk/maplibre",
   "type": "module",
   "version": "1.0.0",
-  "packageManager": "pnpm@12.5.1",
+  "packageManager": "pnpm@12.6.0",
   "description": "声明式 MapLibre GL 封装库：MaplibreMap/Source/Layer 等组件与 composables，原生支持 Nuxt 4 模块，并通过 Vite 插件在纯 Vue + Vite 项目中可用。无需 access token，内置 3D 建筑、雷达/扩散/辉光等动态效果，sky/terrain 环境，绘制（terra-draw）、天地图、WMS/WMTS 与多坐标系本土化支持。",
   "author": "YiXuan <mhaibaraai@gmail.com>",
   "license": "MIT",
@@ -88,14 +88,26 @@
     "dist"
   ],
   "peerDependencies": {
+    "@geomatico/maplibre-cog-protocol": ">=0.10.0",
     "lottie-web": ">=5.0.0",
+    "maplibre-contour": ">=0.1.0",
     "maplibre-gl": ">=6.0.0",
+    "pmtiles": ">=4.0.0",
     "terra-draw": ">=1.0.0",
     "terra-draw-maplibre-gl-adapter": ">=1.0.0",
     "vue": ">=3.5.0"
   },
   "peerDependenciesMeta": {
+    "@geomatico/maplibre-cog-protocol": {
+      "optional": true
+    },
     "lottie-web": {
+      "optional": true
+    },
+    "maplibre-contour": {
+      "optional": true
+    },
+    "pmtiles": {
       "optional": true
     },
     "terra-draw": {
@@ -141,6 +153,7 @@
     "unplugin-vue-components": "^32.1.0"
   },
   "devDependencies": {
+    "@geomatico/maplibre-cog-protocol": "^0.10.0",
     "@nuxt/eslint-config": "^1.17.0",
     "@nuxt/kit": "^4.5.2",
     "@nuxt/module-builder": "^1.0.3",
@@ -152,15 +165,17 @@
     "eslint": "^10.11.0",
     "happy-dom": "^20.14.5",
     "lottie-web": "^5.13.0",
-    "maplibre-gl": "^6.10.0",
+    "maplibre-contour": "^0.1.1",
+    "maplibre-gl": "^6.11.2",
     "nuxt": "^4.5.2",
+    "pmtiles": "^4.5.0",
     "release-it": "^21.1.0",
     "terra-draw": "^1.35.0",
     "terra-draw-maplibre-gl-adapter": "^1.4.1",
     "typescript": "^6.0.3",
     "unbuild": "^3.6.1",
     "unplugin": "^3.4.0",
-    "vitest": "^5.0.1",
+    "vitest": "^5.0.2",
     "vue": "^3.5.43",
     "vue-tsc": "^3.3.11"
   }

@@ -117,6 +117,19 @@ const controlsNav: NavigationMenuItem = {
   ]
 }
 
+const dataFormatsNav: NavigationMenuItem = {
+  label: '数据格式',
+  icon: 'i-lucide-file-stack',
+  defaultOpen: true,
+  children: [
+    { label: 'PMTiles 单文件瓦片', to: '/data-formats/pmtiles' },
+    { label: 'COG 云优化 GeoTIFF', to: '/data-formats/cog' },
+    { label: 'Contour 实时等高线', to: '/data-formats/contour' },
+    { label: 'Mask 区域遮罩', to: '/data-formats/mask' },
+    { label: 'Graticule 经纬网', to: '/data-formats/graticule' }
+  ]
+}
+
 const multiMapNav: NavigationMenuItem = {
   label: '多图联动',
   icon: 'i-lucide-columns-2',
@@ -159,6 +172,7 @@ const components: NavigationMenuItem[] = [
   effectsNav,
   toolsNav,
   controlsNav,
+  dataFormatsNav,
   multiMapNav,
   extensionsNav
 ]

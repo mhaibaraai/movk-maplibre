@@ -49,6 +49,9 @@ export default defineConfig(({ mode }) => {
       include: [
         'terra-draw',
         'terra-draw-maplibre-gl-adapter',
+        'pmtiles',
+        '@geomatico/maplibre-cog-protocol',
+        'maplibre-contour',
         '@movk/core',
         '@turf/area',
         '@turf/bearing',
