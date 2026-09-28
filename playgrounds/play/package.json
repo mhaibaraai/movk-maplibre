@@ -8,13 +8,13 @@
   },
   "dependencies": {
     "@maplibre/maplibre-gl-style-spec": "^26.4.4",
-    "@nuxt/ui": "^4.11.1",
-    "maplibre-gl": "^6.10.0",
+    "@nuxt/ui": "^4.11.2",
+    "maplibre-gl": "^6.11.2",
     "terra-draw": "^1.35.0",
     "terra-draw-maplibre-gl-adapter": "^1.4.1"
   },
   "devDependencies": {
-    "@iconify-json/lucide": "^1.2.135",
+    "@iconify-json/lucide": "^1.2.137",
     "nuxt": "^4.5.2",
     "tailwindcss": "^4.3.3"
   }
