@@ -124,6 +124,7 @@ const dataFormatsNav: NavigationMenuItem = {
   children: [
     { label: 'PMTiles 单文件瓦片', to: '/data-formats/pmtiles' },
     { label: 'COG 云优化 GeoTIFF', to: '/data-formats/cog' },
+    { label: 'ZZTS 动态切片', to: '/data-formats/zzts' },
     { label: 'Contour 实时等高线', to: '/data-formats/contour' },
     { label: 'Mask 区域遮罩', to: '/data-formats/mask' },
     { label: 'Graticule 经纬网', to: '/data-formats/graticule' }
