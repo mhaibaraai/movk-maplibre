@@ -23,6 +23,8 @@ export interface ModuleOptions {
     pmtiles?: boolean
     /** 注册 `cog://` 协议，依赖 @geomatico/maplibre-cog-protocol */
     cog?: boolean
+    /** 注册 `zzts://` 协议（ZZTS 二维动态切片服务），无额外依赖；需自定义请求时改为自行调用 `registerZztsProtocol` */
+    zzts?: boolean
   }
 }
 
@@ -74,7 +76,8 @@ export default defineNuxtModule<ModuleOptions>({
 
     const protocols = [
       options.protocols?.pmtiles && { path: './runtime/utils/pmtiles', register: 'registerPmtilesProtocol' },
-      options.protocols?.cog && { path: './runtime/utils/cog', register: 'registerCogProtocol' }
+      options.protocols?.cog && { path: './runtime/utils/cog', register: 'registerCogProtocol' },
+      options.protocols?.zzts && { path: './runtime/utils/zzts', register: 'registerZztsProtocol' }
     ].filter(item => !!item)
     // 协议须在首个地图请求瓦片前注册，静态导入并在客户端插件内同步调用
     if (protocols.length) {
