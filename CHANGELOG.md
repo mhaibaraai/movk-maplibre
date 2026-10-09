@@ -1,5 +1,20 @@
 # 📋 Changelog
 
+## [1.2.1](https://github.com/mhaibaraai/movk-maplibre/compare/v1.2.0...v1.2.1) (2026-10-09)
+
+### ✨ Features
+
+* **components:** 新增 MaplibreZztsLayer 组件，支持裁剪、定位、高分屏与色彩调整 ([4decb8c](https://github.com/mhaibaraai/movk-maplibre/commit/4decb8c5a70264592fc2471b24efd0bcfccc3531))
+* **utils:** 补强 zzts:// 协议的请求合并、重试、裁剪与 3D 场景适配 ([d0b9e8d](https://github.com/mhaibaraai/movk-maplibre/commit/d0b9e8d86ff0c13197c90b33607bb7e5436e1ae7))
+
+### 📝 Documentation
+
+* 重写 ZZTS 文档，补充组件用法、裁剪定位与 3D 场景说明 ([2ae71e0](https://github.com/mhaibaraai/movk-maplibre/commit/2ae71e0806abf33b181f941d2844910e240088be))
+
+### 🔧 Chores
+
+* **playground:** ZZTS 演示页改用 MaplibreZztsLayer 并增加 3D 场景开关 ([8cd0a85](https://github.com/mhaibaraai/movk-maplibre/commit/8cd0a85d3add1cd38eaa4f807bdfc8a2b017bb65))
+
 ## [1.2.0](https://github.com/mhaibaraai/movk-maplibre/compare/v1.1.0...v1.2.0) (2026-10-09)
 
 ### ✨ Features
