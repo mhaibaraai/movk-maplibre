@@ -1,5 +1,6 @@
 import { createRequire } from 'node:module'
 import { addComponentsDir, addImportsDir, addPlugin, addPluginTemplate, createResolver, defineNuxtModule, extendViteConfig } from '@nuxt/kit'
+import type { NuxtModule } from '@nuxt/schema'
 import { defu } from 'defu'
 import { name, version } from '../package.json'
 
@@ -31,7 +32,7 @@ export interface ModuleOptions {
 // 需 Vite 预构建的可选依赖：含 CJS 或 CJS 传递依赖，未预构建时无法具名导入
 const OPTIONAL_DEPS = ['lottie-web', 'pmtiles', '@geomatico/maplibre-cog-protocol', 'maplibre-contour']
 
-export default defineNuxtModule<ModuleOptions>({
+const module: NuxtModule<ModuleOptions, ModuleOptions, false> = defineNuxtModule<ModuleOptions>({
   meta: {
     name,
     version,
@@ -108,3 +109,5 @@ export default defineNuxtModule<ModuleOptions>({
     })
   }
 })
+
+export default module
