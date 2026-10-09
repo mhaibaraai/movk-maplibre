@@ -1,5 +1,24 @@
 # 📋 Changelog
 
+## [1.2.0](https://github.com/mhaibaraai/movk-maplibre/compare/v1.1.0...v1.2.0) (2026-10-09)
+
+### ✨ Features
+
+* **utils:** 新增 zzts:// 协议适配 ZZTS 二维动态切片服务 ([10c3403](https://github.com/mhaibaraai/movk-maplibre/commit/10c3403579432ec307db71d9c77638f9f74b6951))
+
+### 📝 Documentation
+
+* 新增 ZZTS 协议文档 ([1b491f3](https://github.com/mhaibaraai/movk-maplibre/commit/1b491f329eec82dea7314ed10dc1568a2bf8ce95))
+
+### ♻️ Code Refactoring
+
+* **utils:** 移除 ZZTS png_status 判定，仅以请求结果识别缺图 ([b2428f7](https://github.com/mhaibaraai/movk-maplibre/commit/b2428f782d60e18466c29586f9d2aa3cba04b678))
+
+### 🔧 Chores
+
+* **deps:** update all non-major dependencies ([2ff8fe7](https://github.com/mhaibaraai/movk-maplibre/commit/2ff8fe74c6513d264abeb8b2b89f45b71611b722))
+* **playground:** 新增 ZZTS 动态切片演示页 ([d528ba7](https://github.com/mhaibaraai/movk-maplibre/commit/d528ba73dc2375b98903eca389a1af6e5d6a65ea))
+
 ## [1.1.0](https://github.com/mhaibaraai/movk-maplibre/compare/v1.0.0...v1.1.0) (2026-09-28)
 
 ### ⚠ BREAKING CHANGES
