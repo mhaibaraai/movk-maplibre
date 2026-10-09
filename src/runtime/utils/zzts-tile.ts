@@ -16,8 +16,6 @@ export interface ZztsElement {
   type: string
   url: string
   extent: ZztsExtent
-  /** 图片生成状态，0 表示尚未生成（请求返回 404） */
-  png_status?: number
 }
 
 /** media 接口返回的图层元数据（WGS84） */

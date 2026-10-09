@@ -81,12 +81,11 @@ function compose(tile: TileCoord, items: ZztsLayerImage[]): ImageBitmap {
 function createZztsProtocol({ fetch: request = globalThis.fetch.bind(globalThis), cacheSize = 256 }: ZztsProtocolOptions = {}): AddProtocolAction {
   const loadImage = createImageCache(request, cacheSize)
 
-  /** 加载瓦片在某一级的图片；存在未生成或加载失败的元素时，取更粗一级垫在下方补洞 */
+  /** 加载瓦片在某一级的图片；存在加载失败（如 404 未生成）的元素时，取更粗一级垫在下方补洞 */
   async function loadLevel(mediaUrl: string, tile: TileCoord, coarser: number, signal: AbortSignal): Promise<ZztsLayerImage[]> {
     const elements = imageElements(await getJson(request, elementsUrl(mediaUrl, tile, coarser), signal))
-    const ready = elements.filter(element => element.png_status !== 0)
-    const images = await Promise.all(ready.map(element => loadImage(element.url).catch(() => undefined)))
-    const layers = ready.flatMap((element, i) => images[i] ? [{ element, image: images[i] }] : [])
+    const images = await Promise.all(elements.map(element => loadImage(element.url).catch(() => undefined)))
+    const layers = elements.flatMap((element, i) => images[i] ? [{ element, image: images[i] }] : [])
     if (layers.length === elements.length || coarser >= MAX_FALLBACK_LEVELS) return layers
     return [...await loadLevel(mediaUrl, tile, coarser + 1, signal), ...layers]
   }

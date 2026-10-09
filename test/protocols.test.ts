@@ -149,13 +149,11 @@ describe('registerZztsProtocol', () => {
     expect(imageRequests).toHaveLength(1)
   })
 
-  it('fills ungenerated elements with the next coarser level drawn underneath', async () => {
+  it('fills missing images with the next coarser level drawn underneath', async () => {
     let fineScale = 0
     const { load, fetchMock, drawImage } = setup((scale) => {
       fineScale ||= scale
-      return scale === fineScale
-        ? [element('fine'), { ...element('pending'), png_status: 0 }]
-        : [element('coarse')]
+      return scale === fineScale ? [element('fine'), element('missing')] : [element('coarse')]
     })
     const { data } = await load(TILE_URL)
 
@@ -163,21 +161,15 @@ describe('registerZztsProtocol', () => {
       .filter(([url]) => url.includes('/elements?'))
       .map(([url]) => Number(new URL(url).searchParams.get('scale')))
     expect(scales).toEqual([fineScale, fineScale * 2])
-    expect(fetchMock.mock.calls.some(([url]) => url.includes('pending'))).toBe(false)
     expect(data).toBe(composed)
-    const drawn = drawImage.mock.calls.map(([image]) => image.id)
-    expect(drawn).toEqual(['coarse', 'fine'])
+    expect(drawImage.mock.calls.map(([image]) => image.id)).toEqual(['coarse', 'fine'])
   })
 
-  it('treats failed image loads as holes', async () => {
-    let fineScale = 0
-    const { load, drawImage } = setup((scale) => {
-      fineScale ||= scale
-      return scale === fineScale ? [element('missing')] : [element('coarse')]
-    })
+  it('relies on request results rather than service status fields', async () => {
+    const { load, drawImage } = setup([{ ...element('a'), png_status: 0 }])
     await load(TILE_URL)
 
-    expect(drawImage.mock.calls.map(([image]) => image.id)).toEqual(['coarse'])
+    expect(drawImage.mock.calls.map(([image]) => image.id)).toEqual(['a'])
   })
 
   it('remembers missing images instead of requesting them again', async () => {
@@ -189,7 +181,7 @@ describe('registerZztsProtocol', () => {
   })
 
   it('stops falling back after a few coarser levels', async () => {
-    const { load, fetchMock } = setup([{ ...element('pending'), png_status: 0 }])
+    const { load, fetchMock } = setup([element('missing')])
     const { data } = await load(TILE_URL)
 
     expect(fetchMock.mock.calls.filter(([url]) => url.includes('/elements?'))).toHaveLength(4)
