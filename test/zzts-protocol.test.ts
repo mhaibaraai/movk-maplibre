@@ -13,12 +13,15 @@ afterEach(() => {
   SCHEMES.forEach(scheme => Reflect.deleteProperty(globalThis, Symbol.for(`movk-maplibre:protocol:${scheme}`)))
   vi.clearAllMocks()
   vi.unstubAllGlobals()
+  vi.useRealTimers()
 })
 
 const MEDIA_URL = 'http://zzts.test/v1/zzts/layer/media?layerName=demo-01&dictCode=demo'
 // 镇海范围内的 z15 瓦片及其同组右邻
 const TILE = '15/27452/13520'
 const NEIGHBOUR = '15/27453/13520'
+const PARENT = '14/13726/6760'
+const COMPLETE_MAX_AGE = 31_536_000
 const tileUrl = (tile: string, hash = '') => `zzts://${MEDIA_URL}#${hash}tile=${tile}`
 const media = {
   name: 'demo-01',
@@ -37,7 +40,10 @@ const element = (id: string) => {
     extent: { xmin: 121 - offset, ymin: 29, xmax: 122, ymax: 32 }
   }
 }
+/** 服务端尚未生成的元素：png_status 为 0，地址带占位版本 */
+const pending = (id: string) => ({ ...element(id), url: `http://zzts.test/images/${id}.webp?v=0-0`, png_status: 0 })
 const composed = { composed: true }
+const imageId = (url: string) => url.split('/').at(-1)!.replace(/\.webp.*$/, '')
 
 function json(body: unknown): Response {
   return new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } })
@@ -46,15 +52,21 @@ function json(body: unknown): Response {
 type ElementsBody = unknown[] | Record<string, unknown>
 type ElementsByQuery = (params: URLSearchParams) => ElementsBody
 
-function setup(elements: ElementsBody | ElementsByQuery = [element('a')]) {
-  const fetchMock = vi.fn(async (input: string) => {
+/** 挂起直到中止的请求，用于观察取消是否传到 fetch */
+function hanging(signal?: AbortSignal | null): Promise<never> {
+  return new Promise((_, reject) => signal?.addEventListener('abort', () => reject(signal.reason), { once: true }))
+}
+
+function setup(elements: ElementsBody | ElementsByQuery = [element('a')], hang?: (url: string) => boolean) {
+  const fetchMock = vi.fn(async (input: string, init?: RequestInit) => {
+    if (hang?.(input)) return hanging(init?.signal)
     if (input.includes('/elements?')) {
       const body = typeof elements === 'function' ? elements(new URL(input).searchParams) : elements
       return json(Array.isArray(body) ? { elements: body } : body)
     }
     if (input.includes('/media?')) return json(media)
-    if (input.includes('missing')) return new Response(null, { status: 404 })
-    return { ok: true, status: 200, blob: async () => Object.assign(new Blob(['webp']), { id: input.split('/').at(-1)!.replace('.webp', '') }) }
+    if (input.includes('missing') || input.includes('v=0-0')) return new Response(null, { status: 404 })
+    return { ok: true, status: 200, blob: async () => Object.assign(new Blob(['webp']), { id: imageId(input) }) }
   })
   const context = { drawImage: vi.fn(), fill: vi.fn(), globalCompositeOperation: 'source-over' }
   const canvasSizes: number[][] = []
@@ -67,13 +79,19 @@ function setup(elements: ElementsBody | ElementsByQuery = [element('a')]) {
     return { moveTo: vi.fn(), lineTo: vi.fn(), closePath: vi.fn() }
   }))
   registerZztsProtocol({ fetch: fetchMock as unknown as typeof fetch, retry: 0 })
-  const handler = addProtocol.mock.calls[0]![1] as (params: { url: string }, controller: AbortController) => Promise<{ data: unknown }>
+  const handler = addProtocol.mock.calls[0]![1] as (params: { url: string }, controller: AbortController) => Promise<{ data: unknown, cacheControl?: string }>
   const elementCalls = () => fetchMock.mock.calls.map(([url]) => url).filter(url => url.includes('/elements?'))
+  const imageCalls = () => fetchMock.mock.calls.map(([url]) => url).filter(url => url.includes('/images/')).map(imageId)
+  const drawn = () => context.drawImage.mock.calls.map(([image]) => image.id)
+  const signalOf = (part: string) => fetchMock.mock.calls.find(([url]) => url.includes(part))?.[1]?.signal
   return {
     fetchMock,
     context,
     canvasSizes,
     elementCalls,
+    imageCalls,
+    drawn,
+    signalOf,
     load: (url: string, controller = new AbortController()) => handler({ url }, controller)
   }
 }
@@ -156,25 +174,112 @@ describe('zzts protocol', () => {
     expect((data as ArrayBuffer).byteLength).toBe(0)
   })
 
-  it('fills missing images with the next coarser level drawn underneath', async () => {
+  it('fills missing images from the parent level drawn underneath', async () => {
     let fineScale = 0
-    const { load, elementCalls, context } = setup((params) => {
+    const { load, elementCalls, drawn } = setup((params) => {
       const scale = Number(params.get('scale'))
       fineScale ||= scale
       return scale === fineScale ? [element('fine'), element('missing')] : [element('coarse')]
     })
     const { data } = await load(tileUrl(TILE))
 
-    expect(elementCalls().map(url => Number(new URL(url).searchParams.get('scale')))).toEqual([fineScale, fineScale * 2])
+    const [, parentScale] = elementCalls().map(url => Number(new URL(url).searchParams.get('scale')))
+    expect(elementCalls()).toHaveLength(2)
+    expect(parentScale! / fineScale).toBeCloseTo(2, 2)
     expect(data).toBe(composed)
-    expect(context.drawImage.mock.calls.map(([image]) => image.id)).toEqual(['coarse', 'fine'])
+    expect(drawn()).toEqual(['coarse', 'fine'])
   })
 
-  it('relies on request results rather than service status fields', async () => {
-    const { load, context } = setup([{ ...element('a'), png_status: 0 }])
+  it('reuses the parent tile element list when filling holes', async () => {
+    const { load, elementCalls, drawn } = setup(params => Number(params.get('scale')) < 10000 ? [element('fine'), pending('gap')] : [element('coarse')])
+    await load(tileUrl(PARENT))
     await load(tileUrl(TILE))
 
-    expect(context.drawImage.mock.calls.map(([image]) => image.id)).toEqual(['a'])
+    expect(elementCalls()).toHaveLength(2)
+    expect(drawn()).toEqual(['coarse', 'coarse', 'fine'])
+  })
+
+  it('downloads only the coarser images covering the holes', async () => {
+    const [west, south, east, north] = tileBBox({ z: 15, x: 27452, y: 13520 })
+    const mid = (west + east) / 2
+    const at = (id: string, xmin: number, xmax: number, margin = 0) => ({
+      id,
+      type: 'image',
+      url: `http://zzts.test/images/${id}.webp`,
+      extent: { xmin, ymin: south - margin, xmax, ymax: north + margin }
+    })
+    const { load, imageCalls } = setup(params => Number(params.get('scale')) < 10000
+      ? [at('left', west, mid), { ...at('right', mid, east), png_status: 0 }]
+      : [at('coarse-left', west, mid, 0.01), at('coarse-right', mid, east, 0.01)])
+    await load(tileUrl(TILE))
+
+    expect(imageCalls().sort()).toEqual(['coarse-right', 'left'])
+  })
+
+  it('skips images the service has not generated yet and asks for a refresh', async () => {
+    let fineScale = 0
+    const { load, imageCalls, drawn } = setup((params) => {
+      const scale = Number(params.get('scale'))
+      fineScale ||= scale
+      return scale === fineScale ? [element('fine'), pending('later')] : [element('coarse')]
+    })
+    const { cacheControl } = await load(tileUrl(TILE))
+
+    expect(imageCalls()).not.toContain('later')
+    expect(drawn()).toEqual(['coarse', 'fine'])
+    expect(cacheControl).toBe('max-age=30')
+  })
+
+  it('draws generated images once the element list refreshes', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    let fineScale = 0
+    let generated = false
+    const { load, elementCalls, drawn } = setup((params) => {
+      const scale = Number(params.get('scale'))
+      fineScale ||= scale
+      if (scale !== fineScale) return [element('coarse')]
+      return [generated ? element('later') : pending('later')]
+    })
+    await load(tileUrl(TILE))
+    expect(drawn()).toEqual(['coarse'])
+
+    generated = true
+    const early = await load(tileUrl(TILE))
+    expect(elementCalls()).toHaveLength(2)
+    expect(early.cacheControl).toMatch(/^max-age=\d+$/)
+
+    vi.setSystemTime(Date.now() + 30_000)
+    const refreshed = await load(tileUrl(TILE))
+    expect(elementCalls()).toHaveLength(3)
+    expect(drawn().at(-1)).toBe('later')
+    expect(refreshed.cacheControl).toBe(`max-age=${COMPLETE_MAX_AGE}`)
+  })
+
+  it('keeps the previous element list when a refresh fails', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    let fineScale = 0
+    let fail = false
+    const { load, drawn } = setup((params) => {
+      const scale = Number(params.get('scale'))
+      fineScale ||= scale
+      if (scale !== fineScale) return [element('coarse')]
+      return fail ? { code: 500, msg: 'down' } : [element('fine'), pending('later')]
+    })
+    await load(tileUrl(TILE))
+
+    fail = true
+    vi.setSystemTime(Date.now() + 30_000)
+    const { cacheControl } = await load(tileUrl(TILE))
+    expect(drawn()).toEqual(['coarse', 'fine', 'coarse', 'fine'])
+    expect(cacheControl).toBe('max-age=60')
+  })
+
+  // MapLibre 只在响应带过期信息时更新瓦片过期时间，缺省会沿用已过期的旧值而立即重载，故完整瓦片也须给出长期有效期
+  it('marks complete tiles as long-lived instead of omitting the expiry', async () => {
+    const { load } = setup()
+    const { cacheControl } = await load(tileUrl(TILE))
+
+    expect(cacheControl).toBe(`max-age=${COMPLETE_MAX_AGE}`)
   })
 
   it('remembers missing images instead of requesting them again', async () => {
@@ -193,12 +298,13 @@ describe('zzts protocol', () => {
     expect((data as ArrayBuffer).byteLength).toBe(0)
   })
 
-  it('composes on a larger canvas and asks for finer grids at a higher pixel ratio', async () => {
+  it('composes on a larger canvas and asks single tiles for finer grids at a higher pixel ratio', async () => {
     const { load, canvasSizes, elementCalls } = setup()
     await load(tileUrl(TILE, 'pixelRatio=2&'))
 
     expect(canvasSizes).toEqual([[1024, 1024]])
-    expect(new URL(elementCalls()[0]!).searchParams.get('width')).toBe('2048')
+    expect(elementCalls()).toHaveLength(1)
+    expect(new URL(elementCalls()[0]!).searchParams.get('width')).toBe('1024')
   })
 
   it('clips composed tiles to the registered area', async () => {
@@ -234,6 +340,43 @@ describe('zzts protocol', () => {
   it('rejects with the service message on error payloads', async () => {
     const { load } = setup({ code: 500, msg: 'bbox 经度跨度超过 20°' })
     await expect(load(tileUrl(TILE))).rejects.toThrow('bbox 经度跨度超过 20°')
+  })
+
+  it('aborts the element request of a cancelled tile', async () => {
+    const { load, signalOf } = setup([element('a')], url => url.includes('/elements?'))
+    const controller = new AbortController()
+    const tile = load(tileUrl(TILE), controller)
+    await vi.waitFor(() => expect(signalOf('/elements?')).toBeDefined())
+    controller.abort()
+
+    await expect(tile).rejects.toThrow()
+    expect(signalOf('/elements?')!.aborted).toBe(true)
+  })
+
+  it('aborts image downloads of a cancelled tile', async () => {
+    const { load, signalOf } = setup([element('a')], url => url.endsWith('.webp'))
+    const controller = new AbortController()
+    const tile = load(tileUrl(TILE), controller)
+    await vi.waitFor(() => expect(signalOf('.webp')).toBeDefined())
+    controller.abort()
+
+    await expect(tile).rejects.toThrow()
+    expect(signalOf('.webp')!.aborted).toBe(true)
+  })
+
+  it('keeps a shared download alive while another tile still needs it', async () => {
+    const { load, signalOf } = setup([element('a')], url => url.endsWith('.webp'))
+    const first = new AbortController()
+    const second = new AbortController()
+    const tiles = [load(tileUrl(TILE), first), load(tileUrl(NEIGHBOUR), second)]
+    await vi.waitFor(() => expect(signalOf('.webp')).toBeDefined())
+    first.abort()
+    await expect(tiles[0]).rejects.toThrow()
+    expect(signalOf('.webp')!.aborted).toBe(false)
+
+    second.abort()
+    await expect(tiles[1]).rejects.toThrow()
+    expect(signalOf('.webp')!.aborted).toBe(true)
   })
 
   it('stops before composing when the tile request is aborted', async () => {
