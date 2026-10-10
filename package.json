@@ -1,7 +1,7 @@
 {
   "name": "@movk/maplibre",
   "type": "module",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "packageManager": "pnpm@12.10.1",
   "description": "声明式 MapLibre GL 封装库：MaplibreMap/Source/Layer 等组件与 composables，原生支持 Nuxt 4 模块，并通过 Vite 插件在纯 Vue + Vite 项目中可用。无需 access token，内置 3D 建筑、雷达/扩散/辉光等动态效果，sky/terrain 环境，绘制（terra-draw）、天地图、WMS/WMTS 与多坐标系本土化支持。",
   "author": "YiXuan <mhaibaraai@gmail.com>",

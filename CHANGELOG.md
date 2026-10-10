@@ -1,5 +1,21 @@
 # 📋 Changelog
 
+## [1.3.0](https://github.com/mhaibaraai/movk-maplibre/compare/v1.2.1...v1.3.0) (2026-10-10)
+
+### ✨ Features
+
+* **components:** 新增 zIndex 与托管图层栈，beforeId 支持过滤函数锚点 ([f29eb52](https://github.com/mhaibaraai/movk-maplibre/commit/f29eb52b3a7a79346636788c665a86db0fa17180))
+* **components:** 自动生成图层与数据源 id，支持 Source/Layer/Tooltip 嵌套关联 ([f451b1f](https://github.com/mhaibaraai/movk-maplibre/commit/f451b1f2fd3a792d5fcc95f082ade71b3774c459))
+
+### 📝 Documentation
+
+* 补充图层与数据源自动 id、嵌套关联说明及示例 ([a0a4aac](https://github.com/mhaibaraai/movk-maplibre/commit/a0a4aacfcf540756e186cee3a02b27fc28f7f41a))
+* 补充图层顺序（zIndex、过滤函数锚点）与 useLayerTree 层级字段文档及示例 ([a59fc16](https://github.com/mhaibaraai/movk-maplibre/commit/a59fc16705538a046d16ee1b63f5a7f9f90cf938))
+
+### 🔧 Chores
+
+* **playground:** 图层管理页增加业务图层上移下移并压在底图注记下方 ([a269113](https://github.com/mhaibaraai/movk-maplibre/commit/a269113db9bac709bdda582208f6354ca129bb7d))
+
 ## [1.2.1](https://github.com/mhaibaraai/movk-maplibre/compare/v1.2.0...v1.2.1) (2026-10-09)
 
 ### ✨ Features
