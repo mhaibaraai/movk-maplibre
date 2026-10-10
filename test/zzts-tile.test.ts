@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { ZztsExtent, ZztsMedia } from '../src/runtime/utils/zzts-tile'
 import {
+  coarserSource,
   elementsUrl,
   intersectBBox,
   metatileRange,
@@ -101,6 +102,25 @@ describe('metatileRange', () => {
     expect(metatileRange({ z: 5, x: 26, y: 13 }, 2)).toEqual(tileRange({ z: 5, x: 26, y: 13 }))
     // z6 单瓦片跨 5.625°，4 块超限，降为 2 的幂 2 块
     expect(metatileRange({ z: 6, x: 53, y: 26 }, 4)).toEqual({ z: 6, x0: 52, y0: 26, x1: 54, y1: 28 })
+  })
+
+  it('keeps the merged canvas within the size the service answers', () => {
+    const tile = { z: 15, x: 27451, y: 13369 }
+    expect(metatileRange(tile, 2, 1.5)).toEqual(metatileRange(tile, 2))
+    expect(metatileRange(tile, 2, 2)).toEqual(tileRange(tile))
+    expect(metatileRange(tile, 4, 1)).toEqual(metatileRange(tile, 2))
+  })
+})
+
+describe('coarserSource', () => {
+  it('requests the ancestor tile so its element list is shared', () => {
+    expect(coarserSource({ z: 15, x: 27451, y: 13369 }, 0)).toEqual({ tile: { z: 15, x: 27451, y: 13369 }, coarser: 0 })
+    expect(coarserSource({ z: 15, x: 27451, y: 13369 }, 2)).toEqual({ tile: { z: 13, x: 6862, y: 3342 }, coarser: 0 })
+  })
+
+  it('coarsens the scale instead below the coarsest request zoom', () => {
+    expect(coarserSource({ z: 6, x: 53, y: 26 }, 2)).toEqual({ tile: { z: 5, x: 26, y: 13 }, coarser: 1 })
+    expect(coarserSource({ z: 3, x: 6, y: 3 }, 1)).toEqual({ tile: { z: 3, x: 6, y: 3 }, coarser: 1 })
   })
 })
 

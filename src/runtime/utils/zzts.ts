@@ -2,13 +2,14 @@ import { addProtocol } from 'maplibre-gl'
 import type { AddProtocolAction } from 'maplibre-gl'
 import { defineGlobalSingleton } from '@movk/core'
 import { logger } from './logger'
-import { createImageStore, createLru, fetchWithRetry } from './zzts-cache'
-import type { Lru, ZztsImageStore } from './zzts-cache'
+import { MAX_REFRESHES, abortable, createImageStore, createSharedRequests, fetchWithRetry, refreshDelay } from './zzts-cache'
+import type { ZztsImageStore } from './zzts-cache'
 import { getZztsClip } from './zzts-clip'
 import type { ZztsClip } from './zzts-clip'
-import type { TileCoord, TileRange, ZztsElement, ZztsMedia } from './zzts-tile'
+import type { LngLatBBox, TileCoord, TileRange, ZztsElement, ZztsMedia } from './zzts-tile'
 import {
   canvasSize,
+  coarserSource,
   elementsUrl,
   extentBBox,
   intersectBBox,
@@ -41,7 +42,7 @@ export interface ZztsProtocolOptions {
    */
   retry?: number
   /**
-   * 合并请求的边长（瓦片数，取 2 的幂）：相邻 n×n 个瓦片共用一次元素列表请求；设为 1 关闭合并
+   * 合并请求的边长（瓦片数，取 2 的幂）：相邻 n×n 个瓦片共用一次元素列表请求，合并后画布边长不超过 1536px（高分屏下自动减小）；设为 1 关闭合并
    * @defaultValue 2
    */
   metatileSize?: number
@@ -57,10 +58,35 @@ interface ZztsLayerImage {
   image: ImageBitmap
 }
 
+interface ZztsElementList {
+  elements: ZztsElement[]
+  /** 含待生成元素时的复查时间，到期后再取即重新请求 */
+  refreshAt?: number
+  /** 已复查次数，用于退避 */
+  refreshes: number
+}
+
+interface ZztsTileImages {
+  layers: ZztsLayerImage[]
+  /** 本级缺图最早可复查的时间；有值时瓦片到期后由 MapLibre 重载 */
+  retryAt?: number
+}
+
 const EMPTY_TILE = new ArrayBuffer(0)
+/** 完整瓦片的有效期（秒）：MapLibre 不会清除旧的过期时间，缺省 cacheControl 会让曾待复查的瓦片立即反复重载 */
+const COMPLETE_MAX_AGE = 31_536_000
 /** 缺图时向上补底的最大级数 */
 const MAX_FALLBACK_LEVELS = 3
 const ELEMENT_LIST_CACHE_SIZE = 512
+const MEDIA_CACHE_SIZE = 16
+/** 网格边界比较容差（度），吸收服务端坐标的浮点误差 */
+const EPSILON = 1e-9
+
+const isPending = (element: ZztsElement) => element.png_status === 0
+const overlaps = (a: Readonly<LngLatBBox>, b: Readonly<LngLatBBox>) =>
+  a[0] < b[2] - EPSILON && b[0] < a[2] - EPSILON && a[1] < b[3] - EPSILON && b[1] < a[3] - EPSILON
+const contains = (outer: Readonly<LngLatBBox>, inner: Readonly<LngLatBBox>) =>
+  outer[0] <= inner[0] + EPSILON && outer[1] <= inner[1] + EPSILON && outer[2] >= inner[2] - EPSILON && outer[3] >= inner[3] - EPSILON
 
 /** 去掉非图片元素，并按 id 与 extent 去重（相邻网格可能以不同 id 返回同一范围） */
 function imageElements(payload: { elements?: ZztsElement[] } & ZztsErrorPayload): ZztsElement[] {
@@ -108,82 +134,102 @@ function createZztsProtocol({
   metatileSize = 2
 }: ZztsProtocolOptions): AddProtocolAction {
   const images: ZztsImageStore = createImageStore(request, { size: cacheSize, retry })
-  const medias = new Map<string, Promise<ZztsMedia>>()
-  const lists = createLru<string, Promise<ZztsElement[]>>(ELEMENT_LIST_CACHE_SIZE)
+  const medias = createSharedRequests<ZztsMedia>({ size: MEDIA_CACHE_SIZE })
+  const lists = createSharedRequests<ZztsElementList>({
+    size: ELEMENT_LIST_CACHE_SIZE,
+    isFresh: list => list.refreshAt === undefined || Date.now() < list.refreshAt
+  })
 
-  // 元数据与元素列表由多个瓦片共享，不绑定单个瓦片的 signal；调用方在等待后自行检查中止
-  async function getJson<T>(url: string): Promise<T> {
-    const res = await fetchWithRetry(request, url, retry)
+  async function getJson<T>(url: string, signal: AbortSignal): Promise<T> {
+    const res = await fetchWithRetry(request, url, retry, signal)
     if (!res.ok) throw new Error(`ZZTS 请求失败：HTTP ${res.status}`)
     return await res.json() as T
   }
 
-  function shared<T>(cache: Lru<string, Promise<T>>, key: string, load: () => Promise<T>): Promise<T> {
-    const hit = cache.get(key)
-    if (hit) return hit
-    const pending = load()
-    pending.catch(() => cache.delete(key))
-    cache.set(key, pending)
-    return pending
+  /** 拉取区间的元素列表；区间经度跨度超限时由 planQueries 拆成多次请求再合并。复查失败时沿用旧列表并顺延 */
+  async function loadList(mediaUrl: string, media: ZztsMedia, range: TileRange, pixelRatio: number, coarser: number, signal: AbortSignal, previous?: ZztsElementList): Promise<ZztsElementList> {
+    const refreshes = previous ? previous.refreshes + 1 : 0
+    try {
+      const queries = planQueries(range, extentBBox(media.extent), pixelRatio, coarser)
+      const payloads = await Promise.all(queries.map(query => getJson<{ elements?: ZztsElement[] } & ZztsErrorPayload>(elementsUrl(mediaUrl, query), signal)))
+      const elements = dedupe(payloads.flatMap(imageElements))
+      return { elements, refreshes, ...(elements.some(isPending) ? { refreshAt: Date.now() + refreshDelay(refreshes) } : {}) }
+    } catch (error) {
+      if (!previous || signal.aborted) throw error
+      return { ...previous, refreshes, refreshAt: Date.now() + refreshDelay(refreshes) }
+    }
   }
 
-  const getMedia = (mediaUrl: string) => shared(medias, mediaUrl, () => getJson<ZztsMedia>(mediaUrl))
-
-  /** 区间内的元素列表；区间经度跨度超限时由 planQueries 拆成多次请求再合并 */
-  function rangeElements(mediaUrl: string, media: ZztsMedia, range: TileRange, pixelRatio: number, coarser: number): Promise<ZztsElement[]> {
+  function rangeElements(mediaUrl: string, media: ZztsMedia, range: TileRange, pixelRatio: number, coarser: number, signal: AbortSignal): Promise<ZztsElementList> {
     const key = [mediaUrl, pixelRatio, coarser, range.z, range.x0, range.y0, range.x1, range.y1].join('|')
-    return shared(lists, key, async () => {
-      const queries = planQueries(range, extentBBox(media.extent), pixelRatio, coarser)
-      const payloads = await Promise.all(queries.map(query => getJson<{ elements?: ZztsElement[] } & ZztsErrorPayload>(elementsUrl(mediaUrl, query))))
-      return dedupe(payloads.flatMap(imageElements))
-    })
+    return lists(key, signal, (loadSignal, previous) => loadList(mediaUrl, media, range, pixelRatio, coarser, loadSignal, previous))
   }
 
   /** 先取合并区间的列表；为空时可能是服务端「元素过多返回空列表」，退回单瓦片请求 */
-  async function tileElements(mediaUrl: string, media: ZztsMedia, tile: TileCoord, pixelRatio: number, coarser: number): Promise<ZztsElement[]> {
-    const group = metatileRange(tile, metatileSize)
-    const single = tileRange(tile)
+  async function tileElements(mediaUrl: string, media: ZztsMedia, tile: TileCoord, pixelRatio: number, coarser: number, signal: AbortSignal): Promise<ZztsElementList> {
+    const group = metatileRange(tile, metatileSize, pixelRatio)
+    const list = await rangeElements(mediaUrl, media, group, pixelRatio, coarser, signal)
     const merged = group.x1 - group.x0 > 1
-    let elements = await rangeElements(mediaUrl, media, group, pixelRatio, coarser)
-    if (merged && !elements.length) elements = await rangeElements(mediaUrl, media, single, pixelRatio, coarser)
-    const bbox = tileBBox(tile)
-    return elements.filter(element => intersectBBox(extentBBox(element.extent), bbox))
+    return merged && !list.elements.length ? rangeElements(mediaUrl, media, tileRange(tile), pixelRatio, coarser, signal) : list
   }
 
-  /** 加载瓦片在某一级的图片；存在加载失败（如 404 未生成）的元素时，取更粗一级垫在下方补洞 */
-  async function loadLevel(
-    mediaUrl: string,
-    media: ZztsMedia,
-    tile: TileCoord,
-    pixelRatio: number,
-    coarser: number,
-    acquired: string[]
-  ): Promise<ZztsLayerImage[]> {
-    const elements = await tileElements(mediaUrl, media, tile, pixelRatio, coarser)
-    const loaded = await Promise.all(elements.map((element) => {
-      acquired.push(element.url)
-      return images.acquire(element.url)
-    }))
-    const layers = elements.flatMap((element, i) => loaded[i] ? [{ element, image: loaded[i] }] : [])
-    if (layers.length === elements.length || coarser >= MAX_FALLBACK_LEVELS) return layers
-    return [...await loadLevel(mediaUrl, media, tile, pixelRatio, coarser + 1, acquired), ...layers]
+  /**
+   * 逐级加载瓦片图片：首级缺图（未生成或 404）留下孔洞，逐级向上只取覆盖孔洞的粗级图片垫在下方，
+   * 孔洞被完整覆盖即停止；粗级请求对齐祖先瓦片，与其共用元素列表。
+   */
+  async function loadTile(mediaUrl: string, media: ZztsMedia, tile: TileCoord, pixelRatio: number, signal: AbortSignal, acquired: string[]): Promise<ZztsTileImages> {
+    const bbox = tileBBox(tile)
+    let holes: LngLatBBox[] = [bbox]
+    let retryAt: number | undefined
+    let levels: ZztsLayerImage[][] = []
+
+    for (let level = 0; level <= MAX_FALLBACK_LEVELS && holes.length; level++) {
+      const source = coarserSource(tile, level)
+      const list = await tileElements(mediaUrl, media, source.tile, pixelRatio, source.coarser, signal)
+      const candidates = list.elements.filter(element => holes.some(hole => overlaps(extentBBox(element.extent), hole)))
+      const ready = candidates.filter(element => !isPending(element))
+      const loaded = await abortable(Promise.all(ready.map((element) => {
+        acquired.push(element.url)
+        return images.acquire(element.url)
+      })), signal)
+      const layers = ready.flatMap((element, i) => loaded[i] ? [{ element, image: loaded[i] }] : [])
+      levels = [layers, ...levels]
+
+      if (level > 0) {
+        holes = holes.filter(hole => !layers.some(({ element }) => contains(extentBBox(element.extent), hole)))
+        continue
+      }
+      const missing = candidates.filter(element => !layers.some(layer => layer.element === element))
+      holes = missing.flatMap((element) => {
+        const hole = intersectBBox(extentBBox(element.extent), bbox)
+        return hole ? [hole] : []
+      })
+      const listRetry = list.refreshes < MAX_REFRESHES ? list.refreshAt : undefined
+      const retries = missing
+        .map(element => isPending(element) ? listRetry : images.retryAt(element.url))
+        .filter((at): at is number => at !== undefined)
+      retryAt = retries.length ? Math.min(...retries) : undefined
+    }
+    return { layers: levels.flat(), ...(retryAt === undefined ? {} : { retryAt }) }
   }
 
   return async ({ url }, { signal }) => {
     const { mediaUrl, tile, pixelRatio, clip: clipKey } = parseZztsUrl(url)
     const clip = clipKey ? getZztsClip(clipKey) : undefined
-    const media = await getMedia(mediaUrl)
-    signal.throwIfAborted()
+    const media = await medias(mediaUrl, signal, loadSignal => getJson<ZztsMedia>(mediaUrl, loadSignal))
     if (!tile) return { data: zztsTileJson(url, media, clip?.bbox) }
 
     // 裁剪键失效（图层正在卸载）或瓦片与裁剪区域不相交时不出图，宁缺勿露
-    if (clipKey && (!clip || !intersectBBox(tileBBox(tile), clip.bbox))) return { data: EMPTY_TILE }
+    if (clipKey && (!clip || !intersectBBox(tileBBox(tile), clip.bbox))) return { data: EMPTY_TILE, cacheControl: `max-age=${COMPLETE_MAX_AGE}` }
 
     const acquired: string[] = []
     try {
-      const layers = await loadLevel(mediaUrl, media, tile, pixelRatio, 0, acquired)
+      const { layers, retryAt } = await loadTile(mediaUrl, media, tile, pixelRatio, signal, acquired)
       signal.throwIfAborted()
-      return { data: layers.length ? compose(tile, layers, canvasSize(pixelRatio), clip) : EMPTY_TILE }
+      const data = layers.length ? compose(tile, layers, canvasSize(pixelRatio), clip) : EMPTY_TILE
+      // 缺图待生成：经缓存过期让 MapLibre 到期重载视口内的瓦片，届时复查列表换上细图
+      const maxAge = retryAt === undefined ? COMPLETE_MAX_AGE : Math.max(1, Math.ceil((retryAt - Date.now()) / 1000))
+      return { data, cacheControl: `max-age=${maxAge}` }
     } finally {
       acquired.forEach(images.release)
     }

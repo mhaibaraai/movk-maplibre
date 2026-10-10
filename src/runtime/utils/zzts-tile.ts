@@ -17,6 +17,8 @@ export interface ZztsElement {
   type: string
   url: string
   extent: ZztsExtent
+  /** 生成状态：0 表示列表返回时服务端尚未生成（图片 404，生成后列表给出带新版本号的地址） */
+  png_status?: number
 }
 
 /** media 接口返回的图层元数据（WGS84） */
@@ -85,6 +87,8 @@ const MAX_BBOX_SPAN = 20
 /** 已验证可用的最粗请求级别（单瓦片跨度不超过 20°）；更低级别沿用其比例尺，由画布缩小绘制 */
 const MIN_REQUEST_ZOOM = Math.ceil(Math.log2(360 / MAX_BBOX_SPAN))
 const MAX_PIXEL_RATIO = 4
+/** 合并请求的画布边长上限：实测服务端画布达 2048 时返回空列表 */
+const MAX_MERGED_CANVAS = 1536
 /** 该级别起单个瓦片内经纬度与墨卡托的纬向误差小于 1px，无需分条带绘制 */
 const LINEAR_ZOOM = 8
 const STRIP_HEIGHT = 32
@@ -153,15 +157,25 @@ export function intersectBBox(a: Readonly<LngLatBBox>, b: Readonly<LngLatBBox>):
 
 /**
  * 瓦片所在的合并请求区间：k×k 个相邻瓦片共用一次 elements 请求。
- * k 取不超过 size 的 2 的幂，并保证区间经度跨度不超过服务端上限，以便各级别分组对齐。
+ * k 取不超过 size 的 2 的幂，并保证区间经度跨度与画布边长不超过服务端上限，以便各级别分组对齐。
  */
-export function metatileRange(tile: TileCoord, size: number): TileRange {
+export function metatileRange(tile: TileCoord, size: number, pixelRatio = 1): TileRange {
   const span = 360 / 2 ** tile.z
-  const limit = Math.min(size, MAX_BBOX_SPAN / span, 2 ** tile.z)
+  const limit = Math.min(size, MAX_BBOX_SPAN / span, 2 ** tile.z, MAX_MERGED_CANVAS / canvasSize(pixelRatio))
   const k = limit >= 1 ? 2 ** Math.floor(Math.log2(limit)) : 1
   const x0 = Math.floor(tile.x / k) * k
   const y0 = Math.floor(tile.y / k) * k
   return { z: tile.z, x0, y0, x1: x0 + k, y1: y0 + k }
+}
+
+/**
+ * 第 level 级补洞的请求瓦片与取粗级数：优先取祖先瓦片，使元素列表与祖先瓦片自身的请求共用；
+ * 低于最粗请求级别时祖先不再变粗，改为把比例尺逐级翻倍。
+ */
+export function coarserSource(tile: TileCoord, level: number): { tile: TileCoord, coarser: number } {
+  const z = Math.max(tile.z - level, Math.min(tile.z, MIN_REQUEST_ZOOM))
+  const factor = 2 ** (tile.z - z)
+  return { tile: { z, x: Math.floor(tile.x / factor), y: Math.floor(tile.y / factor) }, coarser: z - (tile.z - level) }
 }
 
 /** 瓦片在给定纬度处的比例尺分母，与公司 Cesium 组件的取值口径一致，保证服务端选出相同的网格级别 */
