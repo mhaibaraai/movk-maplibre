@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import type { GeoJSONSource, MapGeoJSONFeature, MapLayerMouseEvent } from 'maplibre-gl'
 import type { GeoJSONSourceSpecification } from '@maplibre/maplibre-gl-style-spec'
 import type { Point } from 'geojson'
@@ -8,6 +8,7 @@ import { useMap } from '../../composables/useMap'
 import { logger } from '../../utils/logger'
 import MaplibreSource from '../Source.vue'
 import MaplibreLayer from '../Layer.vue'
+import { useStyleId } from '../../domains/map/style-id'
 
 type PropBag = Record<string, unknown>
 
@@ -53,7 +54,7 @@ const emit = defineEmits<{
 }>()
 
 const ctx = useMap()
-const id = props.sourceId ?? `movk-cluster-${useId()}`
+const id = useStyleId('cluster', props.sourceId)
 
 const source = computed<GeoJSONSourceSpecification>(() => ({
   type: 'geojson',

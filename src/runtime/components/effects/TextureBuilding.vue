@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import { useMaplibreImage } from '../../composables/useMaplibreImage'
 import { buildingExtrusionPaint } from '../../utils/building'
 import type { BuildingSourceOptions } from '../../utils/building'
 import MaplibreBuildingLayer from '../layers/BuildingLayer.vue'
+import { useStyleId } from '../../domains/map/style-id'
 
 /** 纹理建筑：用户贴图 url 作 fill-extrusion-pattern。 */
 const props = withDefaults(defineProps<BuildingSourceOptions & {
@@ -27,7 +28,7 @@ const props = withDefaults(defineProps<BuildingSourceOptions & {
   minzoom: 15
 })
 
-const id = props.layerId ?? `movk-texture-building-${useId()}`
+const id = useStyleId('texture-building', props.layerId)
 const imageName = `${id}-texture`
 
 // 复用 useMaplibreImage:加载贴图并在 setStyle 后自动补回

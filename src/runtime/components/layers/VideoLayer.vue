@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import type { VideoSource } from 'maplibre-gl'
 import type { VideoSourceSpecification } from '@maplibre/maplibre-gl-style-spec'
 import { useMap } from '../../composables/useMap'
 import MaplibreSource from '../Source.vue'
 import MaplibreLayer from '../Layer.vue'
+import { useStyleId } from '../../domains/map/style-id'
 
 const props = withDefaults(defineProps<{
   /** 图层 id；省略时自动生成，变更需配合 `:key` 重建 */
@@ -25,7 +26,7 @@ const props = withDefaults(defineProps<{
 })
 
 const ctx = useMap()
-const id = props.layerId ?? `movk-video-${useId()}`
+const id = useStyleId('video', props.layerId)
 
 const source = computed<VideoSourceSpecification>(() => ({
   type: 'video',

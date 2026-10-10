@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import type { GeoJSONSourceSpecification } from '@maplibre/maplibre-gl-style-spec'
 import { heatmapPaint } from '../../utils/heatmap'
 import MaplibreSource from '../Source.vue'
 import MaplibreLayer from '../Layer.vue'
+import { useStyleId } from '../../domains/map/style-id'
 
 /** 温度热力层：GeoJSON 点按温度属性渲染 maplibre 原生 heatmap。 */
 const props = withDefaults(defineProps<{
@@ -49,7 +50,7 @@ const props = withDefaults(defineProps<{
   opacity: 1
 })
 
-const id = props.layerId ?? `movk-temperature-${useId()}`
+const id = useStyleId('temperature', props.layerId)
 
 const source = computed<GeoJSONSourceSpecification>(() => ({ type: 'geojson', data: props.data }))
 

@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import { buildingGradientPaint } from '../../utils/building-effects'
 import { useMapAnimation } from '../../composables/useMapAnimation'
 import { DEFAULT_HEIGHT_PROPERTY } from '../../utils/building'
 import type { BuildingSourceOptions } from '../../utils/building'
 import MaplibreBuildingLayer from '../layers/BuildingLayer.vue'
+import { useStyleId } from '../../domains/map/style-id'
 
 /** 流动建筑：渐变着色 + 高亮带沿建筑高度循环流动。 */
 const props = withDefaults(defineProps<BuildingSourceOptions & {
@@ -56,7 +57,7 @@ const props = withDefaults(defineProps<BuildingSourceOptions & {
   minzoom: 15
 })
 
-const id = props.layerId ?? `movk-flow-building-${useId()}`
+const id = useStyleId('flow-building', props.layerId)
 
 const initialPaint = computed(() => buildingGradientPaint({
   stops: [[0, props.color], [props.maxHeight, props.color]],

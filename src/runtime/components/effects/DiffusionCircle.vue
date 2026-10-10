@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import type { GeoJSONSourceSpecification } from '@maplibre/maplibre-gl-style-spec'
 import { ringFade, ringProgress } from '../../utils/effects'
 import { useMapAnimation } from '../../composables/useMapAnimation'
 import MaplibreSource from '../Source.vue'
 import MaplibreLayer from '../Layer.vue'
+import { useStyleId } from '../../domains/map/style-id'
 
 /** 扩散圆：多圈同心圆周期性扩张并渐隐。 */
 const props = withDefaults(defineProps<{
@@ -47,7 +48,7 @@ const props = withDefaults(defineProps<{
   opacity: 0.6
 })
 
-const id = props.layerId ?? `movk-diffusion-${useId()}`
+const id = useStyleId('diffusion', props.layerId)
 const source = computed<GeoJSONSourceSpecification>(() => ({ type: 'geojson', data: props.data }))
 
 const initialPaint = computed(() => ({

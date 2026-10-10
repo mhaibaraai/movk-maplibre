@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson'
 import type { GeoJSONSource } from 'maplibre-gl'
 import type { GeoJSONSourceSpecification } from '@maplibre/maplibre-gl-style-spec'
@@ -7,6 +7,7 @@ import { arcLine, createLineSampler, type Position2D } from '../../utils/effects
 import { useMapAnimation } from '../../composables/useMapAnimation'
 import MaplibreSource from '../Source.vue'
 import MaplibreLayer from '../Layer.vue'
+import { useStyleId } from '../../domains/map/style-id'
 
 export interface MigrationRoute {
   from: Position2D
@@ -56,7 +57,7 @@ const props = withDefaults(defineProps<{
   particleRadius: 4
 })
 
-const id = props.layerId ?? `movk-migration-${useId()}`
+const id = useStyleId('migration', props.layerId)
 const linesId = `${id}-lines`
 const particlesId = `${id}-particles`
 

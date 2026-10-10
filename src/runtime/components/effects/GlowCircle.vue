@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import type { GeoJSONSourceSpecification } from '@maplibre/maplibre-gl-style-spec'
 import { useMapAnimation } from '../../composables/useMapAnimation'
 import MaplibreSource from '../Source.vue'
 import MaplibreLayer from '../Layer.vue'
+import { useStyleId } from '../../domains/map/style-id'
 
 /** 炫光圆：实心内核 + 模糊光晕，可选呼吸脉冲。 */
 const props = withDefaults(defineProps<{
@@ -46,7 +47,7 @@ const props = withDefaults(defineProps<{
   duration: 2000
 })
 
-const id = props.layerId ?? `movk-glow-${useId()}`
+const id = useStyleId('glow', props.layerId)
 const source = computed<GeoJSONSourceSpecification>(() => ({ type: 'geojson', data: props.data }))
 
 const glowRadius = computed(() => props.radius * props.glowScale)

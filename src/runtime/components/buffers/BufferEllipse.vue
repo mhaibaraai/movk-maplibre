@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import { ellipse } from '@turf/ellipse'
 import type { GeoJSONSourceSpecification } from '@maplibre/maplibre-gl-style-spec'
 import { bufferPaints } from '../../utils/buffer'
 import MaplibreSource from '../Source.vue'
 import MaplibreLayer from '../Layer.vue'
+import { useStyleId } from '../../domains/map/style-id'
 
 /** 椭圆缓冲区：半轴单位米，angle 为长轴方位角。 */
 const props = withDefaults(defineProps<{
@@ -39,7 +40,7 @@ const props = withDefaults(defineProps<{
   steps: 64
 })
 
-const id = props.layerId ?? `movk-buffer-ellipse-${useId()}`
+const id = useStyleId('buffer-ellipse', props.layerId)
 
 const source = computed<GeoJSONSourceSpecification>(() => ({
   type: 'geojson',

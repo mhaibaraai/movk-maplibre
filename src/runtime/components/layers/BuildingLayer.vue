@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import { buildingLayerSpec } from '../../utils/building'
 import type { BuildingSourceOptions } from '../../utils/building'
 import MaplibreLayer from '../Layer.vue'
+import { useStyleId } from '../../domains/map/style-id'
 
 /** 3D 建筑：按要素高度属性拉伸的 fill-extrusion 图层。 */
 const props = defineProps<BuildingSourceOptions & {
@@ -29,7 +30,7 @@ const props = defineProps<BuildingSourceOptions & {
   beforeId?: string
 }>()
 
-const id = props.layerId ?? `movk-building-${useId()}`
+const id = useStyleId('building', props.layerId)
 
 const spec = computed(() => buildingLayerSpec({
   id,

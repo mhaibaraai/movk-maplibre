@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, shallowRef, useTemplateRef, watch } from 'vue'
+import { inject, onMounted, onUnmounted, shallowRef, useTemplateRef, watch } from 'vue'
 import { Popup } from 'maplibre-gl'
 import type { GeoJSONFeature, LngLat, Map as MaplibreMap, MapMouseEvent, PopupOptions } from 'maplibre-gl'
 import { useMap } from '../composables/useMap'
+import { LayerScopeKey } from '../domains/map/layer-scope'
 import { isDeepEqual } from '@movk/core'
 import { onLayerDataChange } from '../utils/events'
+import { logger } from '../utils/logger'
 import type { PopupTrigger } from '../types'
 
 /** 目标图层要素的弹窗：按 trigger 以悬浮或点击触发，作用域插槽拿到当前要素。 */
 const props = withDefaults(defineProps<{
-  /** 目标图层 id；变化时改绑到新图层 */
-  layerId: string
+  /** 目标图层 id；省略时绑定外层 MaplibreLayer；变化时改绑到新图层 */
+  layerId?: string
   /**
    * Popup 选项（hover 模式下 closeButton/closeOnClick 由组件接管）；值变化时重建弹窗
    * @see https://maplibre.org/maplibre-gl-js/docs/API/type-aliases/PopupOptions/
@@ -32,11 +34,14 @@ const props = withDefaults(defineProps<{
 })
 
 const ctx = useMap()
+const parentLayer = inject(LayerScopeKey, null)
 const el = useTemplateRef<HTMLDivElement>('el')
 const hovered = shallowRef<GeoJSONFeature>()
 let popup: Popup | undefined
 // 最近一次展示所在位置，图层数据更新后据此重新查询要素
 let anchor: LngLat | undefined
+// 当前绑定的图层 id，数据更新后据此重新查询要素
+let boundLayerId: string | undefined
 let unbind: (() => void) | undefined
 let disposed = false
 
@@ -68,8 +73,8 @@ function close(): void {
 
 // 数据更新后原位置仍有要素则刷新为新要素，否则关闭，避免展示已失效的旧数据
 function revalidate(map: MaplibreMap): void {
-  if (!popup?.isOpen() || !anchor) return
-  const [feature] = map.queryRenderedFeatures(map.project(anchor), { layers: [props.layerId] })
+  if (!popup?.isOpen() || !anchor || !boundLayerId) return
+  const [feature] = map.queryRenderedFeatures(map.project(anchor), { layers: [boundLayerId] })
   if (feature) hovered.value = feature
   else close()
 }
@@ -109,7 +114,12 @@ function bind(map: MaplibreMap): void {
   if (props.trigger === 'none') return
 
   // 解绑须用绑定时的图层 id，layerId 变更后 props 已是新值
-  const { layerId } = props
+  const layerId = props.layerId ?? parentLayer?.layerId
+  if (!layerId) {
+    logger.warn('MaplibreTooltip: no target layer; pass layerId or nest it inside <MaplibreLayer>.')
+    return
+  }
+  boundLayerId = layerId
   const stopDataChange = onLayerDataChange(map, layerId, () => revalidate(map))
 
   if (props.trigger === 'hover') {
@@ -137,6 +147,7 @@ function bind(map: MaplibreMap): void {
 function teardown(): void {
   unbind?.()
   unbind = undefined
+  boundLayerId = undefined
   setCursor('')
   popup?.remove()
   popup = undefined

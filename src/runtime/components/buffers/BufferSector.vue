@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import { sector } from '@turf/sector'
 import type { GeoJSONSourceSpecification } from '@maplibre/maplibre-gl-style-spec'
 import { bufferPaints } from '../../utils/buffer'
 import MaplibreSource from '../Source.vue'
 import MaplibreLayer from '../Layer.vue'
+import { useStyleId } from '../../domains/map/style-id'
 
 /** 扇形缓冲区：bearing1 → bearing2（度，正北顺时针），半径单位米。 */
 const props = withDefaults(defineProps<{
@@ -35,7 +36,7 @@ const props = withDefaults(defineProps<{
   steps: 64
 })
 
-const id = props.layerId ?? `movk-buffer-sector-${useId()}`
+const id = useStyleId('buffer-sector', props.layerId)
 
 const source = computed<GeoJSONSourceSpecification>(() => ({
   type: 'geojson',

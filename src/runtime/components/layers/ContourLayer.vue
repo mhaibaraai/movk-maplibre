@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, shallowRef, useId } from 'vue'
+import { computed, onMounted, onUnmounted, shallowRef } from 'vue'
 import { addProtocol, removeProtocol } from 'maplibre-gl'
 import mlcontour from 'maplibre-contour'
 import type { FilterSpecification, VectorSourceSpecification } from '@maplibre/maplibre-gl-style-spec'
 import MaplibreSource from '../Source.vue'
 import MaplibreLayer from '../Layer.vue'
 import { textFontLayout } from '../../domains/map/config'
+import { useStyleId } from '../../domains/map/style-id'
 
 type DemSource = InstanceType<typeof mlcontour.DemSource>
 
@@ -68,7 +69,7 @@ const props = withDefaults(defineProps<{
 
 const CONTOUR_LAYER = 'contours'
 
-const id = props.layerId ?? `movk-contour-${useId()}`
+const id = useStyleId('contour', props.layerId)
 
 // worker 模式在构造时创建 Worker，仅在客户端挂载后实例化
 const demSource = shallowRef<DemSource>()

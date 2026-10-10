@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import { buffer } from '@turf/buffer'
 import type { Feature, FeatureCollection, Polygon } from 'geojson'
 import type { GeoJSONSourceSpecification } from '@maplibre/maplibre-gl-style-spec'
 import { bufferPaints } from '../../utils/buffer'
 import MaplibreSource from '../Source.vue'
 import MaplibreLayer from '../Layer.vue'
+import { useStyleId } from '../../domains/map/style-id'
 
 /** 多边形缓冲区：向外扩展（或负值收缩）width 米。 */
 const props = withDefaults(defineProps<{
@@ -25,7 +26,7 @@ const props = withDefaults(defineProps<{
   beforeId?: string
 }>(), {})
 
-const id = props.layerId ?? `movk-buffer-polygon-${useId()}`
+const id = useStyleId('buffer-polygon', props.layerId)
 
 function toFeature(polygon: typeof props.polygon): Feature<Polygon> {
   if (Array.isArray(polygon)) {

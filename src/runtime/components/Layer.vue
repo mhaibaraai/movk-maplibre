@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed, inject, onUnmounted, watch } from 'vue'
+import { computed, inject, onUnmounted, provide, watch } from 'vue'
 import { omitUndefined } from '@movk/core'
 import type { Map as MaplibreMap, MapEventType, MapLayerEventType } from 'maplibre-gl'
 import type { FilterSpecification, LayerSpecification, SourceSpecification } from '@maplibre/maplibre-gl-style-spec'
 import { useMap } from '../composables/useMap'
 import { LayerGroupKey } from '../domains/map/layer-group'
+import { LayerScopeKey, SourceScopeKey } from '../domains/map/layer-scope'
+import { useStyleId } from '../domains/map/style-id'
 import { applyLayerProps, type LayerUpdate } from '../utils/layer'
 import { opacityPropsFor, scaleOpacity } from '../utils/layer-opacity'
 import { bindMapEvents } from '../utils/events'
@@ -13,14 +15,14 @@ import { updateSource } from '../utils/source'
 type PropBag = Record<string, unknown>
 
 const props = withDefaults(defineProps<{
-  /** 图层 id，全局唯一；变更需配合 `:key` 重建 */
-  layerId: string
+  /** 图层 id，全局唯一；省略时按类型自动生成（如 `fill#1`）；变更需配合 `:key` 重建 */
+  layerId?: string
   /**
    * 图层类型，决定渲染方式与可用的 paint / layout 属性；变更需配合 `:key` 重建
    * @see https://maplibre.org/maplibre-style-spec/layers/
    */
   type: LayerSpecification['type']
-  /** source id 字符串引用，或内联 source 对象（自动创建匿名源并随图层卸载，内容变化时增量更新）；二者之间切换需配合 `:key` 重建 */
+  /** source id 字符串引用，或内联 source 对象（自动创建匿名源并随图层卸载，内容变化时增量更新）；省略时引用外层 MaplibreSource；二者之间切换需配合 `:key` 重建 */
   source?: string | SourceSpecification
   /** 矢量瓦片源内的子图层名（source-layer），消费矢量源时必填；变更需配合 `:key` 重建 */
   sourceLayer?: string
@@ -70,6 +72,9 @@ const emit = defineEmits<{
 const LAYER_EVENTS = ['click', 'dblclick', 'mousedown', 'mouseup', 'mousemove', 'mouseenter', 'mouseleave', 'contextmenu'] as const
 
 const ctx = useMap()
+const layerId = useStyleId(props.type, props.layerId)
+// 外层 MaplibreSource（可选）：省略 source 时引用它
+const sourceScope = inject(SourceScopeKey, null)
 // 所属图层组（可选）：提供缺省插入锚点、组级显隐与透明度
 const group = inject(LayerGroupKey, null)
 
@@ -90,19 +95,22 @@ const effectivePaint = computed<PropBag | undefined>(() => {
 })
 
 if (group) {
-  onUnmounted(group.registerLayer(() => ({ layerId: props.layerId, type: props.type, paint: props.paint })))
+  onUnmounted(group.registerLayer(() => ({ layerId, type: props.type, paint: props.paint })))
 }
-const inlineSourceId = `${props.layerId}__source`
+provide(LayerScopeKey, { layerId })
+
+const inlineSourceId = `${layerId}-source`
 const hasInlineSource = typeof props.source === 'object'
 
+// background 图层不允许 source 字段，不继承外层源
 function resolveSourceId(): string | undefined {
-  if (props.source === undefined) return undefined
+  if (props.source === undefined) return props.type === 'background' ? undefined : sourceScope?.sourceId
   return hasInlineSource ? inlineSourceId : (props.source as string)
 }
 
 function buildSpec(): LayerSpecification {
   const spec = omitUndefined({
-    id: props.layerId,
+    id: layerId,
     type: props.type,
     source: resolveSourceId(),
     paint: effectivePaint.value,
@@ -122,13 +130,13 @@ function resolveBeforeId(map: MaplibreMap): string | undefined {
 }
 
 function currentUpdate(): LayerUpdate {
-  return { id: props.layerId, paint: effectivePaint.value, layout: effectiveLayout.value, filter: props.filter, minzoom: props.minzoom, maxzoom: props.maxzoom }
+  return { id: layerId, paint: effectivePaint.value, layout: effectiveLayout.value, filter: props.filter, minzoom: props.minzoom, maxzoom: props.maxzoom }
 }
 
 let prev: LayerUpdate = currentUpdate()
 
 function addLayer(map: MaplibreMap): void {
-  if (map.getLayer(props.layerId)) return
+  if (map.getLayer(layerId)) return
   if (hasInlineSource && !map.getSource(inlineSourceId)) {
     map.addSource(inlineSourceId, props.source as SourceSpecification)
   }
@@ -161,14 +169,14 @@ const stopReady = ctx.onReady((map) => {
 
 function bindLayerEvents(map: MaplibreMap): void {
   stopEvents?.()
-  stopEvents = bindMapEvents(map, LAYER_EVENTS, (type, event) => emit(type as never, event as never), props.layerId)
+  stopEvents = bindMapEvents(map, LAYER_EVENTS, (type, event) => emit(type as never, event as never), layerId)
 }
 
 watch(
   () => [effectivePaint.value, effectiveLayout.value, props.filter, props.minzoom, props.maxzoom] as const,
   () => {
     const map = ctx.map.value
-    if (!map?.getLayer(props.layerId)) return
+    if (!map?.getLayer(layerId)) return
     const next = currentUpdate()
     applyLayerProps(map, next, prev)
     prev = next
@@ -186,8 +194,8 @@ if (hasInlineSource) {
 
 watch(() => props.beforeId ?? group?.beforeId.value, () => {
   const map = ctx.map.value
-  if (!map?.getLayer(props.layerId)) return
-  map.moveLayer(props.layerId, resolveBeforeId(map))
+  if (!map?.getLayer(layerId)) return
+  map.moveLayer(layerId, resolveBeforeId(map))
 })
 
 onUnmounted(() => {
@@ -196,7 +204,7 @@ onUnmounted(() => {
   const map = ctx.map.value
   if (!map) return
   if (onSourceData) map.off('sourcedata', onSourceData)
-  if (map.getLayer(props.layerId)) map.removeLayer(props.layerId)
+  if (map.getLayer(layerId)) map.removeLayer(layerId)
   if (hasInlineSource && map.getSource(inlineSourceId)) map.removeSource(inlineSourceId)
 })
 </script>

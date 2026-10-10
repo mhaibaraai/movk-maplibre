@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, onUnmounted, useId } from 'vue'
+import { computed, onUnmounted } from 'vue'
 import { windowTextureImage } from '../../utils/building-effects'
 import { useMap } from '../../composables/useMap'
 import { buildingExtrusionPaint } from '../../utils/building'
 import type { BuildingSourceOptions } from '../../utils/building'
 import MaplibreBuildingLayer from '../layers/BuildingLayer.vue'
+import { useStyleId } from '../../domains/map/style-id'
 
 /** 窗户建筑：程序生成窗户点阵贴图 fill-extrusion-pattern。 */
 const props = withDefaults(defineProps<BuildingSourceOptions & {
@@ -57,7 +58,7 @@ const props = withDefaults(defineProps<BuildingSourceOptions & {
 })
 
 const ctx = useMap()
-const id = props.layerId ?? `movk-window-building-${useId()}`
+const id = useStyleId('window-building', props.layerId)
 const imageName = `${id}-pattern`
 
 const paint = computed(() => ({

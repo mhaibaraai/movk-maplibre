@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, useId, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { GeoJSONSourceSpecification } from '@maplibre/maplibre-gl-style-spec'
 import { spriteFrame, spriteFrameRect } from '../../utils/sprite'
 import { useMap } from '../../composables/useMap'
@@ -7,6 +7,7 @@ import { useFrameIcon } from '../../composables/useFrameIcon'
 import { logger } from '../../utils/logger'
 import MaplibreSource from '../Source.vue'
 import MaplibreLayer from '../Layer.vue'
+import { useStyleId } from '../../domains/map/style-id'
 
 /** 帧动画图标层：雪碧图切帧后由 StyleImageInterface.render 逐帧驱动 symbol 循环播放，零解码依赖。 */
 const props = withDefaults(defineProps<{
@@ -47,7 +48,7 @@ const props = withDefaults(defineProps<{
 })
 
 const ctx = useMap()
-const id = props.layerId ?? `movk-sprite-${useId()}`
+const id = useStyleId('sprite', props.layerId)
 const imageName = `${id}-frames`
 
 const source = computed<GeoJSONSourceSpecification>(() => ({ type: 'geojson', data: props.data }))

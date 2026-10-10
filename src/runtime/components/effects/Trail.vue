@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import type { GeoJSONSourceSpecification } from '@maplibre/maplibre-gl-style-spec'
 import { trailGradient } from '../../utils/effects'
 import { useMapAnimation } from '../../composables/useMapAnimation'
 import MaplibreSource from '../Source.vue'
 import MaplibreLayer from '../Layer.vue'
+import { useStyleId } from '../../domains/map/style-id'
 
 /** 动态轨迹：line-gradient 彗尾窗口沿线循环平移（source 需 lineMetrics）。 */
 const props = withDefaults(defineProps<{
@@ -47,7 +48,7 @@ const props = withDefaults(defineProps<{
   baseLine: true
 })
 
-const id = props.layerId ?? `movk-trail-${useId()}`
+const id = useStyleId('trail', props.layerId)
 
 // line-gradient 依赖 lineMetrics 计算 line-progress
 const source = computed<GeoJSONSourceSpecification>(() => ({

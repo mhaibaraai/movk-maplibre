@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import { buffer } from '@turf/buffer'
 import type { Feature, FeatureCollection, LineString } from 'geojson'
 import type { GeoJSONSourceSpecification } from '@maplibre/maplibre-gl-style-spec'
 import { bufferPaints } from '../../utils/buffer'
 import MaplibreSource from '../Source.vue'
 import MaplibreLayer from '../Layer.vue'
+import { useStyleId } from '../../domains/map/style-id'
 
 /** 线缓冲区：沿线两侧扩展 width 米的走廊面。 */
 const props = withDefaults(defineProps<{
@@ -25,7 +26,7 @@ const props = withDefaults(defineProps<{
   beforeId?: string
 }>(), {})
 
-const id = props.layerId ?? `movk-buffer-line-${useId()}`
+const id = useStyleId('buffer-line', props.layerId)
 
 function toFeature(line: typeof props.line): Feature<LineString> {
   if (Array.isArray(line)) {

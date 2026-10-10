@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onUnmounted, ref, useId, watch } from 'vue'
+import { computed, onUnmounted, ref, watch } from 'vue'
 import type { FitBoundsOptions, MapSourceDataEvent, RasterTileSource } from 'maplibre-gl'
 import type { RasterLayerSpecification, RasterSourceSpecification } from '@maplibre/maplibre-gl-style-spec'
 import { omitUndefined } from '@movk/core'
@@ -10,6 +10,7 @@ import type { MaskInput } from '../../utils/mask'
 import { registerZztsProtocol } from '../../utils/zzts'
 import { deleteZztsClip, setZztsClip } from '../../utils/zzts-clip'
 import { ZZTS_TILE_SIZE, zztsSourceUrl } from '../../utils/zzts-tile'
+import { useStyleId } from '../../domains/map/style-id'
 
 /** ZZTS 二维动态切片影像：经 zzts:// 协议拼合为 512 墨卡托瓦片，支持多边形裁剪、定位与高分屏出图，可用于 globe 与地形场景。 */
 const props = withDefaults(defineProps<{
@@ -62,7 +63,7 @@ const props = withDefaults(defineProps<{
   opacity: 1
 })
 
-const id = props.layerId ?? `movk-zzts-${useId()}`
+const id = useStyleId('zzts', props.layerId)
 const ctx = useMap()
 
 // 裁剪区域按版本换键：键随 url 变化，促使 MapLibre 重载瓦片；旧键即时注销

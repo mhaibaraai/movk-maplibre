@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import { buildingGradientPaint } from '../../utils/building-effects'
 import type { BuildingSourceOptions } from '../../utils/building'
 import MaplibreBuildingLayer from '../layers/BuildingLayer.vue'
+import { useStyleId } from '../../domains/map/style-id'
 
 /** 渐变建筑：按高度插值着色的 3D 建筑。 */
 const props = withDefaults(defineProps<BuildingSourceOptions & {
@@ -26,7 +27,7 @@ const props = withDefaults(defineProps<BuildingSourceOptions & {
   minzoom: 15
 })
 
-const id = props.layerId ?? `movk-gradient-building-${useId()}`
+const id = useStyleId('gradient-building', props.layerId)
 const paint = computed(() => buildingGradientPaint({
   stops: props.stops,
   opacity: props.opacity,
