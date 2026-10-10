@@ -23,11 +23,17 @@ const hidpi = ref(false)
 const pitch = ref(0)
 const imagery = useTemplateRef('imagery')
 
-// 统计 elements 请求数，用于对比合并请求的效果
+// 统计 elements 请求、网格图片请求与其中的 404，用于对比请求合并、取消与缺图处理的效果
 const elementRequests = ref(0)
+const imageRequests = ref(0)
+const notFound = ref(0)
 onMounted(() => {
   const observer = new PerformanceObserver((list) => {
-    elementRequests.value += list.getEntries().filter(entry => entry.name.includes('/elements?')).length
+    const entries = list.getEntries() as PerformanceResourceTiming[]
+    const images = entries.filter(entry => entry.name.includes('/images/'))
+    elementRequests.value += entries.filter(entry => entry.name.includes('/elements?')).length
+    imageRequests.value += images.length
+    notFound.value += images.filter(entry => entry.responseStatus === 404).length
   })
   observer.observe({ type: 'resource', buffered: false })
   onUnmounted(() => observer.disconnect())
@@ -38,7 +44,7 @@ onMounted(() => {
   <MapShowcase
     title="ZZTS 动态切片"
     description="MaplibreZztsLayer 经 zzts:// 协议把 GeoSOT 网格图片拼合为 512 墨卡托瓦片；可切换 globe、地形、俯仰、裁剪与高分屏出图验证 3D 场景。"
-    :state="{ globe, terrain, clipped, hidpi, pitch, elementRequests }"
+    :state="{ globe, terrain, clipped, hidpi, pitch, elementRequests, imageRequests, notFound }"
   >
     <template #toolbar>
       <UInput v-model.lazy="mediaUrl" placeholder="media 接口地址（含 layerName、dictCode）" class="w-96" />
