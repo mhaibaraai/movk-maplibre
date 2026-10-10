@@ -1,5 +1,19 @@
 # 📋 Changelog
 
+## [1.3.1](https://github.com/mhaibaraai/movk-maplibre/compare/v1.3.0...v1.3.1) (2026-10-10)
+
+### ⚡ Performance Improvements
+
+* **utils:** 优化 zzts:// 协议缩放时的请求量与缺图处理 ([b72d669](https://github.com/mhaibaraai/movk-maplibre/commit/b72d66946fbc36b02f46b49b37746ed60e6cc026))
+
+### 📝 Documentation
+
+* 更新 ZZTS 缺图处理、自动复查与请求合并说明 ([6fb750b](https://github.com/mhaibaraai/movk-maplibre/commit/6fb750bb0671f7acf386da0f63c84739e3de6195))
+
+### 🔧 Chores
+
+* **playground:** ZZTS 页面增加图片请求与 404 计数 ([c521a4a](https://github.com/mhaibaraai/movk-maplibre/commit/c521a4a448f87cc5888f07a1d40cfa7aec7113ee))
+
 ## [1.3.0](https://github.com/mhaibaraai/movk-maplibre/compare/v1.2.1...v1.3.0) (2026-10-10)
 
 ### ✨ Features
