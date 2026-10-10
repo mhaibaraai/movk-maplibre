@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import type { GeoJSONSourceSpecification } from '@maplibre/maplibre-gl-style-spec'
 import { heatmapPaint } from '../../utils/heatmap'
 import MaplibreSource from '../Source.vue'
 import MaplibreLayer from '../Layer.vue'
+import { useStyleId } from '../../domains/map/style-id'
+import type { LayerBeforeId } from '../../types'
 
 /** 温度热力层：GeoJSON 点按温度属性渲染 maplibre 原生 heatmap。 */
 const props = withDefaults(defineProps<{
@@ -40,8 +42,8 @@ const props = withDefaults(defineProps<{
   opacity?: number
   /** 超过该缩放级别隐藏热力（通常切到点图）；省略不限制 */
   maxzoom?: number
-  /** 插入到该图层之前 */
-  beforeId?: string
+  /** 插入到该图层之前：图层 id，或在底图样式图层中取首个匹配的过滤函数 */
+  beforeId?: LayerBeforeId
 }>(), {
   weightProperty: 'temperature',
   radius: 30,
@@ -49,7 +51,7 @@ const props = withDefaults(defineProps<{
   opacity: 1
 })
 
-const id = props.layerId ?? `movk-temperature-${useId()}`
+const id = useStyleId('temperature', props.layerId)
 
 const source = computed<GeoJSONSourceSpecification>(() => ({ type: 'geojson', data: props.data }))
 

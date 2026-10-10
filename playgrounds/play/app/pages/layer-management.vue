@@ -38,25 +38,36 @@ const isLabel = (layer: LayerSpecification) => layer.type === 'symbol' || /^tian
 const isRoad = (layer: LayerSpecification) => 'source-layer' in layer && layer['source-layer'] === 'transportation'
 
 const tree = useLayerTree({ mapId })
+
+// 业务图层组的层级（越大越靠上）；侧栏上移、下移经 setZIndex 写回
+const zIndex = reactive({ districts: 1, schools: 2 })
+const services = computed(() => tree.value.filter(item => item.title === '人口片区' || item.title === '学校'))
+
+function move(index: number, offset: -1 | 1): void {
+  const current = services.value[index]
+  const target = services.value[index + offset]
+  if (!current || !target) return
+  const { zIndex: currentZ } = current
+  current.setZIndex(target.zIndex)
+  target.setZIndex(currentZ)
+}
 </script>
 
 <template>
   <MapShowcase
     title="图层管理"
-    description="MaplibreLayerGroup 是唯一数据源：图层控件、图例与右侧 useLayerTree 侧栏读写同一份 v-model；底图切换后业务图层与底图图层（注记、道路）状态保留。天地图道路绘制在底图瓦片中，无法单独控制。"
+    description="MaplibreLayerGroup 是唯一数据源：图层控件、图例与右侧 useLayerTree 侧栏读写同一份 v-model；业务图层按 zIndex 排序并经谓词 beforeId 压在底图注记下方，底图切换后顺序与状态保留。天地图道路绘制在底图瓦片中，无法单独控制。"
   >
     <MaplibreMap :map-id="mapId" :options="{ style, center: [116.41, 39.91], zoom: 11.5 }">
-      <MaplibreLayerGroup title="人口片区" :opacity="0.7">
+      <MaplibreLayerGroup v-model:z-index="zIndex.districts" title="人口片区" :opacity="0.7" :before-id="isLabel">
         <MaplibreLayer
-          layer-id="lm-districts"
           type="fill"
           :source="{ type: 'geojson', data: districts }"
           :paint="{ 'fill-color': ['step', ['get', 'pop'], '#fde68a', 100, '#f59e0b', 500, '#b45309'], 'fill-opacity': 0.8 }"
         />
       </MaplibreLayerGroup>
-      <MaplibreLayerGroup title="学校">
+      <MaplibreLayerGroup v-model:z-index="zIndex.schools" title="学校" :before-id="isLabel">
         <MaplibreLayer
-          layer-id="lm-schools"
           type="circle"
           :source="{ type: 'geojson', data: schools }"
           :paint="{ 'circle-radius': 8, 'circle-color': ['match', ['get', 'kind'], '小学', '#22c55e', '中学', '#3b82f6', '大学', '#a855f7', '#999'], 'circle-stroke-width': 2, 'circle-stroke-color': '#fff' }"
@@ -86,6 +97,28 @@ const tree = useLayerTree({ mapId })
             size="sm"
             :disabled="!item.visible"
             @update:model-value="item.setOpacity($event ?? 1)"
+          />
+        </div>
+        <p class="text-xs font-medium uppercase text-dimmed">
+          业务图层顺序
+        </p>
+        <div v-for="(item, index) in services" :key="item.id" class="flex items-center gap-2 text-sm">
+          <span class="flex-1">{{ item.title }}</span>
+          <UButton
+            icon="i-lucide-arrow-up"
+            size="xs"
+            variant="ghost"
+            color="neutral"
+            :disabled="index === 0"
+            @click="move(index, -1)"
+          />
+          <UButton
+            icon="i-lucide-arrow-down"
+            size="xs"
+            variant="ghost"
+            color="neutral"
+            :disabled="index === services.length - 1"
+            @click="move(index, 1)"
           />
         </div>
       </div>

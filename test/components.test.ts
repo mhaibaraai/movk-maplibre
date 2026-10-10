@@ -26,7 +26,6 @@ const { maps, makeFakeMap } = vi.hoisted(() => {
       setTilesCalls: 0,
       addSourceCalls: 0,
       setDataCalls: [] as unknown[],
-      moveLayerCalls: [] as [string, string | undefined][],
       styleLoaded: true,
       on(type: string, a: unknown, b?: unknown) {
         const listener = (b ?? a) as (e?: unknown) => void
@@ -61,7 +60,7 @@ const { maps, makeFakeMap } = vi.hoisted(() => {
         sources.add(id)
         self.addSourceCalls++
       },
-      moveLayer: (id: string, before?: string) => self.moveLayerCalls.push([id, before]),
+      moveLayer() {},
       removeSource: (id: string) => sources.delete(id),
       resize() {},
       remove() {},
@@ -276,29 +275,6 @@ describe('Layer 响应式更新', () => {
     expect(map.addSourceCalls).toBe(1)
     expect(map.addLayerCalls).toBe(1)
   })
-
-  it('beforeId 变化时 moveLayer，锚点不存在时移至栈顶', async () => {
-    const beforeId = ref<string | undefined>(undefined)
-    const Parent = defineComponent({
-      setup() {
-        return () => h(MaplibreMap, { options: {} }, {
-          default: () => [
-            h(MaplibreLayer, { layerId: 'anchor', type: 'circle', source: inlineSource }),
-            h(MaplibreLayer, { layerId: 'l', type: 'circle', source: inlineSource, beforeId: beforeId.value })
-          ]
-        })
-      }
-    })
-    mount(Parent)
-    const map = maps[maps.length - 1]!
-    map.fire('style.load')
-
-    beforeId.value = 'anchor'
-    await nextTick()
-    beforeId.value = 'missing'
-    await nextTick()
-    expect(map.moveLayerCalls).toEqual([['l', 'anchor'], ['l', undefined]])
-  })
 })
 
 describe('CustomLayer 响应式更新', () => {
@@ -341,16 +317,6 @@ describe('CustomLayer 响应式更新', () => {
     await nextTick()
     expect(map.layers.has('a')).toBe(true)
     expect(map.layerSpecs.at(-1)).toBe(next)
-  })
-
-  it('beforeId 变化时 moveLayer，锚点不存在时移至栈顶', async () => {
-    const layer = custom('c')
-    const { state, map } = mountCustom({ layer })
-    state.value = { layer, beforeId: 'anchor' }
-    await nextTick()
-    state.value = { layer, beforeId: 'missing' }
-    await nextTick()
-    expect(map.moveLayerCalls).toEqual([['c', 'anchor'], ['c', undefined]])
   })
 })
 

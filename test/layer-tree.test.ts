@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick, ref } from 'vue'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import MaplibreMap from '../src/runtime/components/Map.vue'
 import MaplibreLayer from '../src/runtime/components/Layer.vue'
 import MaplibreLayerGroup from '../src/runtime/components/LayerGroup.vue'
@@ -52,6 +52,37 @@ describe('MaplibreLayerGroup 图层树', () => {
     ])
     await nextTick()
     expect(items.value.map(item => item.title)).toEqual(['学校', '医院'])
+  })
+
+  it('按 zIndex 降序排列，同值保持声明顺序', async () => {
+    const { items } = mountTree(() => [
+      h(MaplibreLayerGroup, { title: '学校' }),
+      h(MaplibreLayerGroup, { title: '医院', zIndex: 2 }),
+      h(MaplibreLayerGroup, { title: '公园' }),
+      h(MaplibreLayerGroup, { title: '道路', zIndex: -1 })
+    ])
+    await nextTick()
+    expect(items.value.map(item => item.title)).toEqual(['医院', '学校', '公园', '道路'])
+  })
+
+  it('setZIndex 写回组的 model 并重排图层与树', async () => {
+    const onZIndex = vi.fn()
+    const { items, map } = mountTree(() => [
+      h(MaplibreLayerGroup, { 'title': '学校', 'onUpdate:zIndex': onZIndex }, {
+        default: () => h(MaplibreLayer, { layerId: 'a', type: 'fill', source: inlineSource })
+      }),
+      h(MaplibreLayerGroup, { title: '医院', zIndex: 1 }, {
+        default: () => h(MaplibreLayer, { layerId: 'b', type: 'fill', source: inlineSource })
+      })
+    ])
+    await nextTick()
+    expect(map.getLayersOrder()).toEqual(['a', 'b'])
+
+    items.value.find(item => item.title === '学校')!.setZIndex(2)
+    await flushPromises()
+    expect(onZIndex).toHaveBeenCalledWith(2)
+    expect(items.value.map(item => item.title)).toEqual(['学校', '医院'])
+    expect(map.getLayersOrder()).toEqual(['b', 'a'])
   })
 
   it('卸载后注销', async () => {

@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { tiandituAnnotationFor, tiandituRasterSource, type TiandituLayerType } from '../../utils/tianditu'
 import MaplibreSource from '../Source.vue'
 import MaplibreLayer from '../Layer.vue'
+import type { LayerBeforeId } from '../../types'
 
 const props = withDefaults(defineProps<{
   /**
@@ -14,8 +15,8 @@ const props = withDefaults(defineProps<{
   tk?: string
   /** 叠加对应注记图层（vec→cva / img→cia / ter→cta） */
   annotation?: boolean
-  /** 插入到该图层之前 */
-  beforeId?: string
+  /** 插入到该图层之前：图层 id，或在底图样式图层中取首个匹配的过滤函数 */
+  beforeId?: LayerBeforeId
 }>(), {
   layer: 'vec',
   annotation: false

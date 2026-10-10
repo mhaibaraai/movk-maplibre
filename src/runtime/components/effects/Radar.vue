@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed, onUnmounted, useId } from 'vue'
+import { computed, onUnmounted } from 'vue'
 import type { GeoJSONSourceSpecification } from '@maplibre/maplibre-gl-style-spec'
 import { radarSweepImage } from '../../utils/effects'
 import { useMap } from '../../composables/useMap'
 import { useMapAnimation } from '../../composables/useMapAnimation'
 import MaplibreSource from '../Source.vue'
 import MaplibreLayer from '../Layer.vue'
+import { useStyleId } from '../../domains/map/style-id'
+import type { LayerBeforeId } from '../../types'
 
 /** 雷达：canvas 生成扇形扫描贴图，symbol 图层按帧旋转。 */
 const props = withDefaults(defineProps<{
@@ -28,8 +30,8 @@ const props = withDefaults(defineProps<{
    * @defaultValue 120
    */
   speed?: number
-  /** 插入到该图层之前 */
-  beforeId?: string
+  /** 插入到该图层之前：图层 id，或在底图样式图层中取首个匹配的过滤函数 */
+  beforeId?: LayerBeforeId
 }>(), {
   color: '#22c55e',
   radius: 60,
@@ -40,7 +42,7 @@ const props = withDefaults(defineProps<{
 const IMAGE_SIZE = 256
 
 const ctx = useMap()
-const id = props.layerId ?? `movk-radar-${useId()}`
+const id = useStyleId('radar', props.layerId)
 const imageName = `${id}-sweep`
 
 const source = computed<GeoJSONSourceSpecification>(() => ({ type: 'geojson', data: props.data }))

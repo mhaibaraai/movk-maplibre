@@ -25,7 +25,7 @@ describe('MaplibreMaskLayer', () => {
   it('creates a fill layer with the inverted mask and applies color/opacity', async () => {
     const { map } = await mountInMap(created, () => h(MaplibreMaskLayer, { layerId: 'mask', data: area(0), color: '#123', opacity: 0.3 }))
     expect(map.getLayer('mask-fill')?.paint).toEqual({ 'fill-color': '#123', 'fill-opacity': 0.3 })
-    const data = (map.sources.get('mask-fill__source') as { data: { geometry: Polygon } }).data
+    const data = (map.sources.get('mask-fill-source') as { data: { geometry: Polygon } }).data
     expect(data.geometry.coordinates).toHaveLength(2)
     expect(map.getLayer('mask-line')).toBeUndefined()
   })
@@ -33,7 +33,7 @@ describe('MaplibreMaskLayer', () => {
   it('adds an outline layer that draws the original data', async () => {
     const { map } = await mountInMap(created, () => h(MaplibreMaskLayer, { layerId: 'mask', data: area(0), outline: true, outlineColor: '#f00', outlineWidth: 2 }))
     expect(map.getLayer('mask-line')?.paint).toEqual({ 'line-color': '#f00', 'line-width': 2 })
-    expect(map.sources.get('mask-line__source')).toEqual({ type: 'geojson', data: area(0) })
+    expect(map.sources.get('mask-line-source')).toEqual({ type: 'geojson', data: area(0) })
   })
 
   it('updates the mask with setData when data changes', async () => {
@@ -41,7 +41,7 @@ describe('MaplibreMaskLayer', () => {
     const { map } = await mountInMap(created, () => h(MaplibreMaskLayer, { layerId: 'mask', data: data.value }))
     data.value = area(5)
     await nextTick()
-    const call = map.sourceCalls.find(([id, method]) => id === 'mask-fill__source' && method === 'setData')
+    const call = map.sourceCalls.find(([id, method]) => id === 'mask-fill-source' && method === 'setData')
     expect((call?.[2] as { geometry: Polygon }).geometry.coordinates[1]![0]).toEqual([5, 0])
   })
 
@@ -66,9 +66,9 @@ describe('MaplibreGraticuleLayer', () => {
     expect(map.getLayer('grid-line')?.paint).toEqual({ 'line-color': '#333', 'line-width': 1 })
     expect(map.getLayer('grid-label')?.type).toBe('symbol')
     // 关闭简化：共线加密点被简化后长线段在瓦片裁剪与球面下丢失
-    expect(map.sources.get('grid-line__source')).toMatchObject({ tolerance: 0 })
+    expect(map.sources.get('grid-line-source')).toMatchObject({ tolerance: 0 })
     // 低缩放级别使用全球范围，zoom 1 对应 30° 步长
-    const lines = lastData(map, 'grid-line__source')!
+    const lines = lastData(map, 'grid-line-source')!
     expect(lines.features.filter(f => f.properties?.axis === 'lon')).toHaveLength(12)
   })
 
@@ -79,7 +79,7 @@ describe('MaplibreGraticuleLayer', () => {
     map.bounds = [110, 30, 112, 32]
     map.fire('moveend')
     await nextTick()
-    const first = lastData(map, 'grid-line__source')
+    const first = lastData(map, 'grid-line-source')
     expect(first?.features.find(f => f.properties?.axis === 'lon')?.properties?.value).toBe(109)
 
     const calls = map.sourceCalls.length
@@ -97,7 +97,7 @@ describe('MaplibreGraticuleLayer', () => {
   it('uses a fixed step when provided and unbinds moveend on unmount', async () => {
     const show = ref(true)
     const { map } = await mountInMap(created, () => (show.value ? h(MaplibreGraticuleLayer, { layerId: 'grid', step: 10 }) : null))
-    const lines = lastData(map, 'grid-line__source')!
+    const lines = lastData(map, 'grid-line-source')!
     expect(lines.features.filter(f => f.properties?.axis === 'lon')).toHaveLength(36)
     show.value = false
     await nextTick()

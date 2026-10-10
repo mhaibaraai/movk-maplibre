@@ -15,6 +15,9 @@ export interface LegendItem {
 /** 认领底图样式图层的过滤函数，按图层特征（类型、source-layer 等）匹配 */
 export type StyleLayerPredicate = (layer: LayerSpecification) => boolean
 
+/** 插入锚点：图层 id，或在底图样式自带图层中取首个匹配的过滤函数 */
+export type LayerBeforeId = string | StyleLayerPredicate
+
 /** 图层树中的一项，对应一个带 title 的 MaplibreLayerGroup */
 export interface LayerTreeItem {
   /** 组的唯一标识 */
@@ -25,12 +28,16 @@ export interface LayerTreeItem {
   visible: boolean
   /** 组自身的透明度 0..1 */
   opacity: number
+  /** 组自身的层级，越大越靠上 */
+  zIndex: number
   /** 图例项：legend prop 优先，否则由子图层颜色推导 */
   legend: LegendItem[]
   /** 写回组的 v-model:visible */
   setVisible: (visible: boolean) => void
   /** 写回组的 v-model:opacity */
   setOpacity: (opacity: number) => void
+  /** 写回组的 v-model:z-index */
+  setZIndex: (zIndex: number) => void
 }
 
 /** 底图切换项 */

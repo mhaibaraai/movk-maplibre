@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import { omitUndefined } from '@movk/core'
 import type { RasterSourceSpecification } from '@maplibre/maplibre-gl-style-spec'
 import MaplibreSource from '../Source.vue'
 import MaplibreLayer from '../Layer.vue'
 import { logger } from '../../utils/logger'
+import { useStyleId } from '../../domains/map/style-id'
+import type { LayerBeforeId } from '../../types'
 
 const props = withDefaults(defineProps<{
   /** 图层 id；省略时自动生成，变更需配合 `:key` 重建 */
@@ -34,14 +36,14 @@ const props = withDefaults(defineProps<{
    * @defaultValue 1
    */
   opacity?: number
-  /** 插入到该图层之前 */
-  beforeId?: string
+  /** 插入到该图层之前：图层 id，或在底图样式图层中取首个匹配的过滤函数 */
+  beforeId?: LayerBeforeId
 }>(), {
   tileSize: 256,
   opacity: 1
 })
 
-const id = props.layerId ?? `movk-raster-${useId()}`
+const id = useStyleId('raster', props.layerId)
 
 const hasSource = computed(() => !!props.url || !!props.tiles?.length)
 if (!hasSource.value) {

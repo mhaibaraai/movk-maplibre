@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onUnmounted, shallowRef, useId, watch } from 'vue'
+import { computed, onUnmounted, shallowRef, watch } from 'vue'
 import type { Map as MaplibreMap } from 'maplibre-gl'
 import type { FeatureCollection, LineString, Point } from 'geojson'
 import type { GeoJSONSourceSpecification } from '@maplibre/maplibre-gl-style-spec'
@@ -7,6 +7,8 @@ import MaplibreLayer from '../Layer.vue'
 import { useMap } from '../../composables/useMap'
 import { textFontLayout } from '../../domains/map/config'
 import { graticuleLabels, graticuleLines, graticuleStep, type Bounds } from '../../utils/graticule'
+import { useStyleId } from '../../domains/map/style-id'
+import type { LayerBeforeId } from '../../types'
 
 /** 经纬网：按缩放级别自动选择步长，平移缩放后按视口重算，球形投影下呈曲线。 */
 const props = withDefaults(defineProps<{
@@ -29,8 +31,8 @@ const props = withDefaults(defineProps<{
    * @defaultValue true
    */
   labels?: boolean
-  /** 插入到该图层之前 */
-  beforeId?: string
+  /** 插入到该图层之前：图层 id，或在底图样式图层中取首个匹配的过滤函数 */
+  beforeId?: LayerBeforeId
 }>(), {
   color: '#888',
   width: 0.5,
@@ -41,7 +43,7 @@ const props = withDefaults(defineProps<{
 const WORLD: Bounds = [-180, -85, 180, 85]
 const WORLD_ZOOM = 3
 
-const id = props.layerId ?? `movk-graticule-${useId()}`
+const id = useStyleId('graticule', props.layerId)
 const ctx = useMap()
 
 const lines = shallowRef<FeatureCollection<LineString>>({ type: 'FeatureCollection', features: [] })
