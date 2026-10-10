@@ -11,6 +11,7 @@ import { registerZztsProtocol } from '../../utils/zzts'
 import { deleteZztsClip, setZztsClip } from '../../utils/zzts-clip'
 import { ZZTS_TILE_SIZE, zztsSourceUrl } from '../../utils/zzts-tile'
 import { useStyleId } from '../../domains/map/style-id'
+import type { LayerBeforeId } from '../../types'
 
 /** ZZTS 二维动态切片影像：经 zzts:// 协议拼合为 512 墨卡托瓦片，支持多边形裁剪、定位与高分屏出图，可用于 globe 与地形场景。 */
 const props = withDefaults(defineProps<{
@@ -54,8 +55,8 @@ const props = withDefaults(defineProps<{
   minzoom?: number
   /** 数据源最大缩放级别，缺省按影像原始分辨率推算，更高级别自动超采样 */
   maxzoom?: number
-  /** 插入到该图层之前 */
-  beforeId?: string
+  /** 插入到该图层之前：图层 id，或在底图样式图层中取首个匹配的过滤函数 */
+  beforeId?: LayerBeforeId
 }>(), {
   scheme: 'zzts',
   pixelRatio: 1,

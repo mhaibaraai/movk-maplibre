@@ -9,6 +9,7 @@ import { logger } from '../../utils/logger'
 import MaplibreSource from '../Source.vue'
 import MaplibreLayer from '../Layer.vue'
 import { useStyleId } from '../../domains/map/style-id'
+import type { LayerBeforeId } from '../../types'
 
 type PropBag = Record<string, unknown>
 
@@ -40,8 +41,8 @@ const props = withDefaults(defineProps<{
    * @defaultValue true
    */
   autoExpand?: boolean
-  /** 插入到该图层之前 */
-  beforeId?: string
+  /** 插入到该图层之前：图层 id，或在底图样式图层中取首个匹配的过滤函数 */
+  beforeId?: LayerBeforeId
 }>(), {
   clusterRadius: 50,
   clusterMaxZoom: 14,

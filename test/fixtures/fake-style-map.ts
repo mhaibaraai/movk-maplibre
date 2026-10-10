@@ -16,6 +16,14 @@ export function fakeStyleMap(styleLayers: Array<Omit<FakeLayer, 'layout' | 'pain
   const toLayer = (spec: Omit<FakeLayer, 'layout' | 'paint'> & Partial<Pick<FakeLayer, 'layout' | 'paint'>>): FakeLayer =>
     ({ ...spec, layout: { ...spec.layout }, paint: { ...spec.paint } })
   for (const spec of styleLayers) layers.set(spec.id, toLayer(spec))
+  // 按 maplibre 语义插到 before 之前，before 缺省或不存在时置顶
+  const place = (id: string, layer: FakeLayer, before?: string): void => {
+    const entries = [...layers].filter(([key]) => key !== id)
+    const index = before === undefined ? -1 : entries.findIndex(([key]) => key === before)
+    entries.splice(index === -1 ? entries.length : index, 0, [id, layer])
+    layers.clear()
+    for (const [key, value] of entries) layers.set(key, value)
+  }
 
   // 控件槽位：addControl 调 onAdd 并挂到文档中，removeControl 调 onRemove
   const controlContainer = document.createElement('div')
@@ -35,6 +43,8 @@ export function fakeStyleMap(styleLayers: Array<Omit<FakeLayer, 'layout' | 'pain
     sources,
     layoutCalls: [] as [string, string, unknown][],
     paintCalls: [] as [string, string, unknown][],
+    /** moveLayer 调用记录：[layerId, beforeId] */
+    moveCalls: [] as [string, string | undefined][],
     /** source 增量更新记录：[sourceId, 方法名, 参数] */
     sourceCalls: [] as [string, string, unknown][],
     styleLoaded: true,
@@ -54,11 +64,15 @@ export function fakeStyleMap(styleLayers: Array<Omit<FakeLayer, 'layout' | 'pain
     getLayersOrder: () => [...layers.keys()],
     getStyle: () => ({ layers: [...layers.values()].map(({ layout, paint, ...rest }) => ({ ...rest, layout: { ...layout }, paint: { ...paint } })) }),
     getLayer: (id: string) => layers.get(id),
-    addLayer(spec: { id: string, type: string, layout?: Record<string, unknown>, paint?: Record<string, unknown> }) {
-      layers.set(spec.id, toLayer(spec))
+    addLayer(spec: { id: string, type: string, layout?: Record<string, unknown>, paint?: Record<string, unknown> }, before?: string) {
+      place(spec.id, toLayer(spec), before)
     },
     removeLayer: (id: string) => layers.delete(id),
-    moveLayer() {},
+    moveLayer(id: string, before?: string) {
+      self.moveCalls.push([id, before])
+      const layer = layers.get(id)
+      if (layer) place(id, layer, before)
+    },
     getLayoutProperty: (id: string, key: string) => layers.get(id)?.layout[key],
     getPaintProperty: (id: string, key: string) => layers.get(id)?.paint[key],
     setLayoutProperty(id: string, key: string, value: unknown) {

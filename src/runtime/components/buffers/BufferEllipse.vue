@@ -6,6 +6,7 @@ import { bufferPaints } from '../../utils/buffer'
 import MaplibreSource from '../Source.vue'
 import MaplibreLayer from '../Layer.vue'
 import { useStyleId } from '../../domains/map/style-id'
+import type { LayerBeforeId } from '../../types'
 
 /** 椭圆缓冲区：半轴单位米，angle 为长轴方位角。 */
 const props = withDefaults(defineProps<{
@@ -33,8 +34,8 @@ const props = withDefaults(defineProps<{
   fillPaint?: Record<string, unknown>
   /** 整体覆盖描边 paint */
   linePaint?: Record<string, unknown>
-  /** 插入到该图层之前 */
-  beforeId?: string
+  /** 插入到该图层之前：图层 id，或在底图样式图层中取首个匹配的过滤函数 */
+  beforeId?: LayerBeforeId
 }>(), {
   angle: 0,
   steps: 64

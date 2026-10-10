@@ -4,6 +4,7 @@ import type { GeoJSONSourceSpecification } from '@maplibre/maplibre-gl-style-spe
 import MaplibreLayer from '../Layer.vue'
 import { maskPolygon, type MaskInput } from '../../utils/mask'
 import { useStyleId } from '../../domains/map/style-id'
+import type { LayerBeforeId } from '../../types'
 
 /** 区域遮罩：压暗目标区域以外的范围，突出显示行政区等面状区域。 */
 const props = withDefaults(defineProps<{
@@ -36,8 +37,8 @@ const props = withDefaults(defineProps<{
    * @defaultValue 1
    */
   outlineWidth?: number
-  /** 插入到该图层之前 */
-  beforeId?: string
+  /** 插入到该图层之前：图层 id，或在底图样式图层中取首个匹配的过滤函数 */
+  beforeId?: LayerBeforeId
 }>(), {
   color: '#000',
   opacity: 0.5,
