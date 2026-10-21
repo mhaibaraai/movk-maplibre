@@ -163,7 +163,7 @@
     "@vitejs/plugin-vue": "^6.0.9",
     "@vue/test-utils": "^2.5.1",
     "eslint": "^10.12.0",
-    "happy-dom": "^20.14.6",
+    "happy-dom": "^21.0.4",
     "lottie-web": "^5.13.0",
     "maplibre-contour": "^0.1.1",
     "maplibre-gl": "^6.13.0",
