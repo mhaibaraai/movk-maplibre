@@ -7,21 +7,21 @@
     "dev": "nuxt dev"
   },
   "dependencies": {
-    "@iconify-json/lucide": "^1.2.142",
-    "@iconify-json/simple-icons": "^1.2.99",
-    "@iconify-json/vscode-icons": "^1.2.87",
+    "@iconify-json/lucide": "^1.2.147",
+    "@iconify-json/simple-icons": "^1.2.100",
+    "@iconify-json/vscode-icons": "^1.2.92",
     "@maplibre/maplibre-gl-style-spec": "^26.4.4",
     "@movk/maplibre": "workspace:*",
-    "@movk/nuxt-docs": "^2.4.2",
-    "@nuxt/content": "^3.16.1",
+    "@movk/nuxt-docs": "^2.4.4",
+    "@nuxt/content": "^3.16.2",
     "@nuxtjs/i18n": "^10.6.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
-    "maplibre-gl": "^6.13.0",
+    "maplibre-gl": "^6.15.0",
     "nuxt": "^4.6.0",
     "tailwindcss": "^4.3.3",
-    "terra-draw": "^1.37.0",
+    "terra-draw": "^1.38.0",
     "terra-draw-maplibre-gl-adapter": "^1.5.0",
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   }
 }
