@@ -1,4 +1,69 @@
 export default defineAppConfig({
+  header: {
+    nav: [
+      { label: { 'zh-CN': '文档', 'en': 'Docs' }, to: '/docs/getting-started', activeMatch: '/docs' },
+      { label: { 'zh-CN': '版本发布', 'en': 'Releases' }, to: '/releases' }
+    ],
+    mobileNav: [
+      { label: { 'zh-CN': '快速开始', 'en': 'Getting Started' }, icon: 'i-lucide-square-play', to: '/docs/getting-started' },
+      { label: { 'zh-CN': '核心组件', 'en': 'Core' }, icon: 'i-lucide-box', to: '/docs/core' },
+      { label: { 'zh-CN': '图层', 'en': 'Layers' }, icon: 'i-lucide-layers', to: '/docs/layers' },
+      { label: { 'zh-CN': '控件', 'en': 'Controls' }, icon: 'i-lucide-sliders-horizontal', to: '/docs/controls' },
+      { label: { 'zh-CN': '效果', 'en': 'Effects' }, icon: 'i-lucide-sparkles', to: '/docs/effects' },
+      { label: { 'zh-CN': '环境', 'en': 'Environment' }, icon: 'i-lucide-cloud-sun', to: '/docs/environment' },
+      { label: { 'zh-CN': '扩展', 'en': 'Extensions' }, icon: 'i-lucide-puzzle', to: '/docs/extensions' },
+      { label: { 'zh-CN': 'Composables', 'en': 'Composables' }, icon: 'i-lucide-square-function', to: '/docs/composables' },
+      { label: { 'zh-CN': '工具函数', 'en': 'Utils' }, icon: 'i-lucide-wrench', to: '/docs/utils' },
+      { label: { 'zh-CN': '版本发布', 'en': 'Releases' }, icon: 'i-lucide-newspaper', to: '/releases' },
+      { label: 'GitHub', icon: 'i-simple-icons-github', to: 'https://github.com/mhaibaraai/movk-maplibre', target: '_blank' }
+    ]
+  },
+  docs: {
+    categories: {
+      'getting-started': [
+        { id: 'ai', title: { 'zh-CN': 'AI 集成', 'en': 'AI Integration' }, icon: 'i-lucide-bot' }
+      ],
+      'core': [
+        { id: 'basics', title: { 'zh-CN': '基础', 'en': 'Basics' }, icon: 'i-lucide-box' },
+        { id: 'overlay', title: { 'zh-CN': '标注与浮层', 'en': 'Markers & Overlays' }, icon: 'i-lucide-map-pin' }
+      ],
+      'layers': [
+        { id: 'builtin', title: { 'zh-CN': '内置类型', 'en': 'Built-in Types' }, icon: 'i-lucide-shapes' },
+        { id: 'data-driven', title: { 'zh-CN': '数据驱动', 'en': 'Data-Driven' }, icon: 'i-lucide-database' },
+        { id: 'buffers', title: { 'zh-CN': '缓冲区', 'en': 'Buffers' }, icon: 'i-lucide-circle-dashed' },
+        { id: 'analysis', title: { 'zh-CN': '分析与辅助', 'en': 'Analysis & Overlays' }, icon: 'i-lucide-grid-3x3' }
+      ],
+      'controls': [
+        { id: 'interactive', title: { 'zh-CN': '交互控件', 'en': 'Interactive' }, icon: 'i-lucide-mouse-pointer-click' },
+        { id: 'info', title: { 'zh-CN': '信息控件', 'en': 'Informational' }, icon: 'i-lucide-info' },
+        { id: 'layer-management', title: { 'zh-CN': '图层管理', 'en': 'Layer Management' }, icon: 'i-lucide-layers' }
+      ],
+      'effects': [
+        { id: 'dynamic', title: { 'zh-CN': '动态', 'en': 'Dynamic' }, icon: 'i-lucide-activity' },
+        { id: 'building', title: { 'zh-CN': '建筑', 'en': 'Building' }, icon: 'i-lucide-building-2' },
+        { id: 'annotation', title: { 'zh-CN': '标注', 'en': 'Annotation' }, icon: 'i-lucide-map-pin' }
+      ],
+      'environment': [
+        { id: 'ambience', title: { 'zh-CN': '场景氛围', 'en': 'Ambience' }, icon: 'i-lucide-mountain' },
+        { id: 'weather', title: { 'zh-CN': '温度', 'en': 'Temperature' }, icon: 'i-lucide-thermometer' }
+      ],
+      'extensions': [
+        { id: 'draw', title: { 'zh-CN': '绘制', 'en': 'Drawing' }, icon: 'i-lucide-pencil-ruler' },
+        { id: 'basemap', title: { 'zh-CN': '底图与坐标', 'en': 'Basemaps & Coordinates' }, icon: 'i-lucide-map' },
+        { id: 'multi-map', title: { 'zh-CN': '多图联动', 'en': 'Multi-map' }, icon: 'i-lucide-columns-2' },
+        { id: 'protocols', title: { 'zh-CN': '数据协议', 'en': 'Data Protocols' }, icon: 'i-lucide-file-stack' }
+      ],
+      'composables': [
+        { id: 'context', title: { 'zh-CN': '上下文注入', 'en': 'Context Injection' }, icon: 'i-lucide-network' },
+        { id: 'interaction', title: { 'zh-CN': '相机与交互', 'en': 'Camera & Interaction' }, icon: 'i-lucide-mouse-pointer-click' },
+        { id: 'icon-export', title: { 'zh-CN': '图标与导出', 'en': 'Icons & Export' }, icon: 'i-lucide-download' }
+      ],
+      'utils': [
+        { id: 'geometry', title: { 'zh-CN': '几何与样式', 'en': 'Geometry & Styles' }, icon: 'i-lucide-shapes' },
+        { id: 'coordinate', title: { 'zh-CN': '坐标与度量', 'en': 'Coordinates & Measurement' }, icon: 'i-lucide-locate-fixed' }
+      ]
+    }
+  },
   aside: {
     filter: {
       enabled: true
@@ -80,14 +145,14 @@ export default defineAppConfig({
       ]
     }
   },
-  ui: {
-    colors: {
-      primary: 'indigo'
-    }
-  },
   github: {
     rootDir: 'docs',
-    commitPath: 'src/runtime'
+    commitPath: 'src/runtime',
+    dateFormat: {
+      options: {
+        timeZone: 'Asia/Shanghai'
+      }
+    }
   },
   toc: {
     bottom: {

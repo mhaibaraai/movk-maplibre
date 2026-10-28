@@ -24,8 +24,6 @@ export default defineNuxtConfig({
 
   devtools: { enabled: true },
 
-  css: ['~/assets/css/main.css'],
-
   site: {
     name: 'Movk MapLibre'
   },
@@ -110,8 +108,8 @@ export default defineNuxtConfig({
   i18n: {
     defaultLocale: 'zh-CN',
     locales: [
-      { code: 'zh-CN', name: '简体中文', file: 'zh-CN.json' },
-      { code: 'en', name: 'English', file: 'en.json' }
+      { code: 'zh-CN', name: '简体中文' },
+      { code: 'en', name: 'English' }
     ]
   },
 
@@ -136,5 +134,10 @@ export default defineNuxtConfig({
   mcp: {
     name: 'Movk MapLibre',
     browserRedirect: '/docs/getting-started/ai/mcp'
+  },
+
+  movkNuxtDocs: {
+    componentDocs: true,
+    a11y: true
   }
 })
