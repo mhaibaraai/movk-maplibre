@@ -15,7 +15,7 @@
     "@iconify-json/vscode-icons": "^1.2.93",
     "@maplibre/maplibre-gl-style-spec": "^26.4.4",
     "@movk/maplibre": "workspace:*",
-    "@movk/nuxt-docs": "^3.0.0",
+    "@movk/nuxt-docs": "^3.0.1",
     "@nuxt/a11y": "^1.0.0-alpha.1",
     "@nuxt/content": "^3.16.2",
     "@nuxtjs/i18n": "^10.6.0",
