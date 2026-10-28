@@ -24,16 +24,6 @@ export default defineNuxtConfig({
 
   devtools: { enabled: true },
 
-  app: {
-    head: {
-      // v3 不再内置中文字体 CDN，显式引入 Alibaba PuHuiTi
-      link: [
-        { rel: 'preconnect', href: 'https://cdn.mhaibaraai.cn', crossorigin: '' },
-        { rel: 'stylesheet', href: 'https://cdn.mhaibaraai.cn/fonts/alibaba-puhuiti.css' }
-      ]
-    }
-  },
-
   site: {
     name: 'Movk MapLibre'
   },
