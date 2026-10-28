@@ -145,11 +145,6 @@ export default defineAppConfig({
       ]
     }
   },
-  ui: {
-    colors: {
-      primary: 'indigo'
-    }
-  },
   github: {
     rootDir: 'docs',
     commitPath: 'src/runtime',

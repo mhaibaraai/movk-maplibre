@@ -4,13 +4,10 @@ seo:
   description: Compose maps, sources, layers, markers and controls declaratively with MaplibreMap / MaplibreLayer components and composables. Native Nuxt 4 module plus a Vite plugin for plain Vue. Ships 3D buildings, radar / diffusion / glow effects, fog / terrain / weather, Tianditu and WMS / WMTS basemaps, and multi-CRS localization.
 ---
 
-::u-page-hero{class="dark:bg-gradient-to-b from-neutral-900 to-neutral-950"}
+::u-page-hero
 ---
 orientation: horizontal
 ---
-#top
-:hero-background
-
 #title
 :::motion
 Declarative [MapLibre GL]{.text-primary} Components
@@ -60,7 +57,7 @@ transition: { duration: 0.6, delay: 0.1 }
 :::
 ::
 
-::u-page-section{class="dark:bg-neutral-950"}
+::u-page-section
 #title
 Core Features
 
@@ -135,7 +132,6 @@ Declarative composition, context injection, and dual-mode runtime — from a sim
 
 ::u-page-c-t-a
 ---
-class: dark:bg-neutral-950
 links:
   - label: Star on GitHub
     to: https://github.com/mhaibaraai/movk-maplibre
