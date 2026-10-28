@@ -8,6 +8,7 @@
 pnpm dev              # 启动 Nuxt playground（playgrounds/play）
 pnpm dev:vue          # 启动纯 Vue + Vite playground（playgrounds/vue）
 pnpm docs             # 启动文档站（docs，基于 Nuxt Content）
+pnpm docs:build       # 构建文档站；CI 会拦截预渲染日志中的 [request error] 死链
 pnpm dev:prepare      # 首次克隆后必跑：stub 构建模块 + 预生成各 playground/docs 类型
 pnpm build            # 构建模块（nuxt-module-build，产出 dist/）
 pnpm lint             # ESLint 检查；pnpm lint:fix 自动修复
@@ -69,7 +70,16 @@ pnpm vitest test/layer.test.ts              # 单文件 watch 模式
 
 ## 撰写文档
 
-文档站在 `docs/`（`@movk/nuxt-docs` + Nuxt Content），组件页结构对齐 movk / Nuxt UI，标题全中文。
+文档站在 `docs/`（`@movk/nuxt-docs` v3 + Nuxt Content），组件页结构对齐 movk / Nuxt UI，标题全中文。
+
+### 文档站配置（@movk/nuxt-docs v3）
+
+- **内容目录**：默认语言（`zh-CN`）文档在 `docs/content/docs/`，英文在 `docs/content/en/docs/`，路由前缀固定 `/docs`、`/en/docs`；首页与版本发布为 `content/index.md`、`content/releases.yml`（英文同理在 `content/en/`）。新增页面需中英文同步。
+- **功能开关**：`nuxt.config.ts` 的 `movkNuxtDocs` 开启 `componentDocs`（`:component-props` / `::component-example` 等依赖 `nuxt-component-meta`、`vue-component-meta`、`prettier`）与 `a11y`；AI Chat 依赖已安装，构建期存在 `AI_API_KEY` 时启用。可选功能缺依赖时构建直接报错。
+- **国际化**：`@nuxtjs/i18n` 在 `modules` 中启用，`i18n.locales` 只写 `code` / `name`，不要声明 `file`；界面文案来自 layer 内置翻译，需覆盖时在 `docs/i18n/locales/{code}.json` 中只写差异键。
+- **导航与分类**：页头导航、移动端导航与侧栏分类都在 [docs/app/app.config.ts](docs/app/app.config.ts) 的 `header.nav`、`header.mobileNav`、`docs.categories` 中按语言声明，站内链接自动加语言前缀；不要再覆盖 `useHeader` / `useCategory`。
+- **视觉**：沿用 v3 默认主色、字体与代码高亮，不在站点中覆盖；组件覆盖只用 layer 覆盖契约内的组件（如 `HeaderLogo`）。
+- **环境变量**：`NUXT_GITHUB_TOKEN`（生产必需，Releases 与提交历史）、`AI_API_KEY`（AI Chat 总开关）、`AI_BASE_URL`（OpenAI 兼容端点，留空走 AI Gateway）。
 
 ### 页面结构（模板）
 
@@ -135,4 +145,4 @@ pnpm vitest test/layer.test.ts              # 单文件 watch 模式
 
 ### 侧栏分类
 
-同一 section 内分组经页面 `category` frontmatter + [docs/app/composables/useCategory.ts](docs/app/composables/useCategory.ts) 注册实现，**URL 不变**。section 内所有页都应带 `category`，否则未归类页落入 "Overview" 组导致侧栏割裂。
+同一 section 内分组经页面 `category` frontmatter + `app.config.ts` 的 `docs.categories` 注册实现，**URL 不变**。section 内所有页都应带 `category`，否则未归类页落入 "Overview" 组导致侧栏割裂。
