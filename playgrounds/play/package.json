@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.147",
-    "nuxt": "^4.6.2",
+    "nuxt": "^4.6.3",
     "tailwindcss": "^4.3.3"
   }
 }
