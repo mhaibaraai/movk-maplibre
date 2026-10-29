@@ -137,6 +137,13 @@ describe('MaplibreTooltip 触发模式', () => {
     rendered.length = 0
   })
 
+  it.each(['hover', 'click'] as const)('%s 弹窗保留自定义类和主题类', async (trigger) => {
+    const { wrapper, popup } = await mountTooltip({ trigger, options: { className: 'custom-tooltip' } })
+    expect(popup().options.className).toBe('movk-popup custom-tooltip')
+    expect(popup().options.closeButton).toBe(trigger === 'click')
+    wrapper.unmount()
+  })
+
   it('默认 hover：mousemove 展示、mouseleave 收起', async () => {
     const { wrapper, map, popup } = await mountTooltip({})
 
@@ -312,10 +319,10 @@ describe('MaplibreTooltip options / layerId 响应式', () => {
     await nextTick()
     expect(popups).toHaveLength(1)
 
-    state.value = { ...state.value, options: { maxWidth: '320px' } }
+    state.value = { ...state.value, options: { maxWidth: '320px', className: 'updated-tooltip' } }
     await nextTick()
     expect(popups).toHaveLength(2)
-    expect(popups[1]!.options).toMatchObject({ maxWidth: '320px', closeButton: false })
+    expect(popups[1]!.options).toMatchObject({ maxWidth: '320px', closeButton: false, className: 'movk-popup updated-tooltip' })
     wrapper.unmount()
   })
 

@@ -14,3 +14,156 @@
   background-color: var(--movk-draw-toolbar-active, #3b82f6);
   color: #fff;
 }
+
+/* 仅为组件库创建的弹窗提供主题，保留原生 Popup 的定位与关闭行为。 */
+.movk-popup {
+  --_movk-popup-bg: #fff;
+  --_movk-popup-color: #0f172a;
+  --_movk-popup-muted: #64748b;
+  --_movk-popup-border: #e2e8f0;
+  --_movk-popup-focus: #3b82f6;
+  --_movk-popup-scrollbar: #cbd5e1;
+  --_movk-popup-scrollbar-hover: #94a3b8;
+  --_movk-popup-shadow: 0 8px 24px rgb(15 23 42 / 12%), 0 2px 6px rgb(15 23 42 / 8%);
+
+  color-scheme: light;
+  color: var(--movk-popup-color, var(--ui-text, var(--_movk-popup-color)));
+  font-family: var(--movk-popup-font-family, var(--font-sans, system-ui, sans-serif));
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.dark .movk-popup,
+.movk-popup.dark {
+  --_movk-popup-bg: #0f172a;
+  --_movk-popup-color: #e2e8f0;
+  --_movk-popup-muted: #94a3b8;
+  --_movk-popup-border: #334155;
+  --_movk-popup-focus: #60a5fa;
+  --_movk-popup-scrollbar: #475569;
+  --_movk-popup-scrollbar-hover: #64748b;
+  --_movk-popup-shadow: 0 8px 24px rgb(0 0 0 / 32%), 0 2px 6px rgb(0 0 0 / 24%);
+
+  color-scheme: dark;
+}
+
+.movk-popup .maplibregl-popup-content {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--movk-popup-border, var(--ui-border, var(--_movk-popup-border)));
+  border-radius: var(--movk-popup-radius, 12px);
+  background: var(--movk-popup-bg, var(--ui-bg, var(--_movk-popup-bg)));
+  box-shadow: var(--movk-popup-shadow, var(--_movk-popup-shadow));
+  overflow-wrap: anywhere;
+}
+
+/* 仅让顶部文字避开关闭按钮，正文与滚动区继续使用完整宽度。 */
+.movk-popup .maplibregl-popup-content:has(> .maplibregl-popup-close-button) > div::before {
+  content: '';
+  float: inline-end;
+  width: 22px;
+  height: 22px;
+  margin-inline-start: 6px;
+}
+
+.movk-popup .maplibregl-popup-close-button {
+  position: absolute;
+  top: 6px;
+  inset-inline: auto 6px;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--movk-popup-muted, var(--ui-text-muted, var(--_movk-popup-muted)));
+  font: 20px/1 Arial, sans-serif;
+  cursor: pointer;
+  transition: background-color 120ms, color 120ms;
+}
+
+.movk-popup .maplibregl-popup-close-button:hover,
+.movk-popup .maplibregl-popup-close-button:focus-visible {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  color: inherit;
+}
+
+.movk-popup .maplibregl-popup-close-button:active {
+  background: color-mix(in srgb, currentColor 16%, transparent);
+}
+
+.movk-popup .maplibregl-popup-close-button:focus-visible {
+  outline: 2px solid var(--movk-popup-focus, var(--ui-primary, var(--_movk-popup-focus)));
+  outline-offset: 2px;
+}
+
+/* 不设置 overflow 或高度，滚动仍由调用方的内容容器决定。 */
+.movk-popup,
+.movk-popup :where(*) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--movk-popup-scrollbar, var(--_movk-popup-scrollbar)) transparent;
+}
+
+.movk-popup:hover,
+.movk-popup :where(*):hover {
+  scrollbar-color: var(--movk-popup-scrollbar-hover, var(--_movk-popup-scrollbar-hover)) transparent;
+}
+
+.movk-popup::-webkit-scrollbar,
+.movk-popup ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.movk-popup::-webkit-scrollbar-track,
+.movk-popup ::-webkit-scrollbar-track,
+.movk-popup::-webkit-scrollbar-corner,
+.movk-popup ::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.movk-popup::-webkit-scrollbar-thumb,
+.movk-popup ::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--movk-popup-scrollbar, var(--_movk-popup-scrollbar));
+}
+
+.movk-popup::-webkit-scrollbar-thumb:hover,
+.movk-popup ::-webkit-scrollbar-thumb:hover {
+  background: var(--movk-popup-scrollbar-hover, var(--_movk-popup-scrollbar-hover));
+}
+
+.movk-popup:is(.maplibregl-popup-anchor-top, .maplibregl-popup-anchor-top-left, .maplibregl-popup-anchor-top-right) .maplibregl-popup-tip {
+  border-bottom-color: var(--movk-popup-bg, var(--ui-bg, var(--_movk-popup-bg)));
+}
+
+.movk-popup:is(.maplibregl-popup-anchor-bottom, .maplibregl-popup-anchor-bottom-left, .maplibregl-popup-anchor-bottom-right) .maplibregl-popup-tip {
+  border-top-color: var(--movk-popup-bg, var(--ui-bg, var(--_movk-popup-bg)));
+}
+
+.movk-popup.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  border-right-color: var(--movk-popup-bg, var(--ui-bg, var(--_movk-popup-bg)));
+}
+
+.movk-popup.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+  border-left-color: var(--movk-popup-bg, var(--ui-bg, var(--_movk-popup-bg)));
+}
+
+/* 贴角箭头与面板保持相接，避免圆角在连接处露出底图。 */
+.movk-popup.maplibregl-popup-anchor-top-left .maplibregl-popup-content {
+  border-top-left-radius: 0;
+}
+
+.movk-popup.maplibregl-popup-anchor-top-right .maplibregl-popup-content {
+  border-top-right-radius: 0;
+}
+
+.movk-popup.maplibregl-popup-anchor-bottom-left .maplibregl-popup-content {
+  border-bottom-left-radius: 0;
+}
+
+.movk-popup.maplibregl-popup-anchor-bottom-right .maplibregl-popup-content {
+  border-bottom-right-radius: 0;
+}
