@@ -69,8 +69,7 @@
 .movk-popup .maplibregl-popup-close-button {
   position: absolute;
   top: 6px;
-  right: auto;
-  inset-inline-end: 6px;
+  inset-inline: auto 6px;
   display: grid;
   width: 28px;
   height: 28px;
