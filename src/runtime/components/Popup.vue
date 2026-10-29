@@ -29,7 +29,7 @@ function onClose(): void {
 }
 
 function createPopup(map: MaplibreMap): void {
-  popup = new Popup(props.options)
+  popup = new Popup({ ...props.options, className: ['movk-popup', props.options?.className].filter(Boolean).join(' ') })
   popup.setLngLat(props.lnglat)
   if (el.value) popup.setDOMContent(el.value)
   popup.on('close', onClose)

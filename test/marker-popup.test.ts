@@ -13,7 +13,7 @@ const { maps, markers, popups, makeFakeMap } = vi.hoisted(() => {
     fire: (type: string) => void
     lnglat: unknown
   }
-  interface FakePopupLike { opened: boolean }
+  interface FakePopupLike { opened: boolean, options: Record<string, unknown> }
   const maps: ReturnType<typeof makeFakeMap>[] = []
   const markers: FakeMarkerLike[] = []
   const popups: FakePopupLike[] = []
@@ -310,6 +310,24 @@ describe('MaplibreMarker 弹窗', () => {
     clickMarker(0)
     await nextTick()
     expect(wrapper.findAll('[data-test="card"]')).toHaveLength(2)
+    wrapper.unmount()
+  })
+})
+
+describe('MaplibreMarker 弹窗样式', () => {
+  it('受控 popup 透传自定义类并保留默认主题', async () => {
+    const open = ref(true)
+    const wrapper = await mountMap(() => h(MaplibreMarker, {
+      'lnglat': [0, 0],
+      'open': open.value,
+      'onUpdate:open': (value: boolean) => { open.value = value },
+      'popupOptions': { className: 'marker-popup' }
+    }, { default: () => h('span', 'marker'), popup: () => h('span', 'details') }))
+    const popup = popups.at(-1)!
+    expect(popup.options.className).toBe('movk-popup marker-popup')
+    maps.at(-1)!.fire('preclick')
+    await nextTick()
+    expect(open.value).toBe(false)
     wrapper.unmount()
   })
 })

@@ -219,6 +219,19 @@ describe('MaplibrePopup options 响应式', () => {
     wrapper.unmount()
   })
 
+  it('默认和自定义类始终包含弹窗主题，重建不改变调用方选项', async () => {
+    const options = { className: 'custom-popup compact', closeButton: false }
+    const { state, onClose, wrapper } = await mountWithOptions(options)
+    expect(popups[0]!.options.className).toBe('movk-popup custom-popup compact')
+    expect(options.className).toBe('custom-popup compact')
+
+    state.value = { maxWidth: '320px' }
+    await nextTick()
+    expect(popups[1]!.options.className).toBe('movk-popup')
+    expect(onClose).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
   it('内联对象值不变、引用变化时不重建', async () => {
     const { state, wrapper } = await mountWithOptions({ offset: [0, 10] })
     state.value = { offset: [0, 10] }

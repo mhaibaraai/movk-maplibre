@@ -104,9 +104,10 @@ function onLeaveCursor(): void {
 // hover 下弹窗随指针来去，接管关闭行为；click 下需要关闭按钮，
 // 但不能默认 closeOnClick——否则会被开启它的那一次 click 派发立即关闭
 function popupOptions(): PopupOptions {
+  const className = ['movk-popup', props.options?.className].filter(Boolean).join(' ')
   return props.trigger === 'hover'
-    ? { ...props.options, closeButton: false, closeOnClick: false }
-    : { closeButton: true, closeOnClick: false, ...props.options }
+    ? { ...props.options, className, closeButton: false, closeOnClick: false }
+    : { closeButton: true, closeOnClick: false, ...props.options, className }
 }
 
 // 按 layerId 委托到地图级监听，目标图层晚于本组件挂载也能命中
