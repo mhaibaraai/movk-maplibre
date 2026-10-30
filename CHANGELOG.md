@@ -1,5 +1,49 @@
 # 📋 Changelog
 
+## [1.3.2](https://github.com/mhaibaraai/movk-maplibre/compare/v1.3.1...v1.3.2) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **ci:** 文档构建启用 pipefail，避免 tee 掩盖失败 ([ff16e7a](https://github.com/mhaibaraai/movk-maplibre/commit/ff16e7a4ed3b3dd75e2de5dd6f8a7b74f4785eb6))
+* **popup:** 修复压缩后关闭按钮偏移到左上角的问题 ([2d9ff43](https://github.com/mhaibaraai/movk-maplibre/commit/2d9ff431dcd1a2315fba1ae224da5c1d93a8796c))
+* **popup:** 统一弹窗主题与关闭按钮及滚动条样式 ([232fd70](https://github.com/mhaibaraai/movk-maplibre/commit/232fd7038fd0e1d8c87b1d4a6f29a9a21a77afa9))
+
+### 📝 Documentation
+
+* **agents:** 移除仅引用 AGENTS.md 的 CLAUDE.md ([4dda6d4](https://github.com/mhaibaraai/movk-maplibre/commit/4dda6d47731535344110534c2bdac384bfb2b030))
+* **agents:** 补充 @movk/nuxt-docs v3 文档站配置说明 ([67c6a85](https://github.com/mhaibaraai/movk-maplibre/commit/67c6a85d4844b6f06ab886eccc3856151a1f5685))
+* 按 v3 视觉更新 og-image ([525a2ed](https://github.com/mhaibaraai/movk-maplibre/commit/525a2ed1bc4fc01c0e03abd830ae4e7cf733863d))
+
+### 💄 Styles
+
+* **docs:** 采用 v3 默认视觉 ([8183f7a](https://github.com/mhaibaraai/movk-maplibre/commit/8183f7ac70dc410d147c8d81cc24c01de04c2e35))
+
+### ♻️ Code Refactoring
+
+* **docs:** 页头导航与侧栏分类迁移至 app.config ([3fc7acf](https://github.com/mhaibaraai/movk-maplibre/commit/3fc7acfbf484b4680f7a1ff4e3450b7ff53d13ae))
+
+### 📦 Build System
+
+* **docs:** 升级 @movk/nuxt-docs 至 v3 ([bd330ab](https://github.com/mhaibaraai/movk-maplibre/commit/bd330ab94017d1a2341f4b0a33ec6731cf49b98d))
+
+### 👷 CI
+
+* 新增并发取消、固定 Node 24 并覆盖文档站构建 ([c72b934](https://github.com/mhaibaraai/movk-maplibre/commit/c72b934126383c6f9894e731c0875b5fdaa3e990))
+
+### 🔧 Chores
+
+* **deps:** lock file maintenance ([#60](https://github.com/mhaibaraai/movk-maplibre/issues/60)) ([51f09b4](https://github.com/mhaibaraai/movk-maplibre/commit/51f09b42c3dd4ed496701fc4a2988d7bc2eb8120))
+* **deps:** update all non-major dependencies ([#59](https://github.com/mhaibaraai/movk-maplibre/issues/59)) ([e8b5fd0](https://github.com/mhaibaraai/movk-maplibre/commit/e8b5fd0d1c655e4def3d3f57aaafef3f3c929043))
+* **deps:** update devdependency happy-dom to v21 ([#61](https://github.com/mhaibaraai/movk-maplibre/issues/61)) ([f340cd8](https://github.com/mhaibaraai/movk-maplibre/commit/f340cd8f5d210c6923df92f62328b10dbfa62c2c))
+* **deps:** update nuxt ([#63](https://github.com/mhaibaraai/movk-maplibre/issues/63)) ([6231485](https://github.com/mhaibaraai/movk-maplibre/commit/62314858c989189ab28a31d7ea7a8458f9f94b44))
+* **deps:** update nuxt framework to ^4.6.2 ([#58](https://github.com/mhaibaraai/movk-maplibre/issues/58)) ([803f394](https://github.com/mhaibaraai/movk-maplibre/commit/803f3942fe4ab2da48c5ca496475e4f2c39de272))
+* **docs:** 升级 @movk/nuxt-docs 至 3.0.1 ([3ea97eb](https://github.com/mhaibaraai/movk-maplibre/commit/3ea97eb3e22e1a78e0f69c2eecae2b20333720b7))
+* **docs:** 升级 @movk/nuxt-docs 至 3.0.2 ([0217db9](https://github.com/mhaibaraai/movk-maplibre/commit/0217db9642d48cd893be38f6158aa2b33c64fe2f))
+* **docs:** 移除 Alibaba PuHuiTi 字体，使用 v3 默认字体 ([16c91a7](https://github.com/mhaibaraai/movk-maplibre/commit/16c91a74876f0d0de3c713b37a0c7706448c57fa))
+* **github:** 新增 PR 与 issue 模板 ([713d725](https://github.com/mhaibaraai/movk-maplibre/commit/713d7258d0c8d39737de1e02a622d7873643b20a))
+* **release:** 发版前要求工作区干净 ([d8f4f88](https://github.com/mhaibaraai/movk-maplibre/commit/d8f4f88763cafb4bfe4d3434dba7aee31c39b635))
+* **renovate:** 新增依赖最短发布时长并按 nuxt、test、lint、release-it 分组 ([0852e59](https://github.com/mhaibaraai/movk-maplibre/commit/0852e59eba4e44c81ed53f42123755a96eba05d9))
+
 ## [1.3.1](https://github.com/mhaibaraai/movk-maplibre/compare/v1.3.0...v1.3.1) (2026-10-10)
 
 ### ⚡ Performance Improvements
