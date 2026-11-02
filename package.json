@@ -169,7 +169,7 @@
     "maplibre-gl": "^6.16.0",
     "nuxt": "^4.6.3",
     "pmtiles": "^4.5.0",
-    "release-it": "^21.1.1",
+    "release-it": "^21.1.2",
     "terra-draw": "^1.38.0",
     "terra-draw-maplibre-gl-adapter": "^1.5.0",
     "typescript": "^6.0.3",
