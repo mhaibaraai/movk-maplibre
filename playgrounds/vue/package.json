@@ -8,21 +8,21 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@maplibre/maplibre-gl-style-spec": "^26.4.4",
+    "@maplibre/maplibre-gl-style-spec": "^26.5.1",
     "@movk/maplibre": "workspace:*",
     "@nuxt/ui": "^4.12.0",
     "maplibre-gl": "^6.16.0",
     "ofetch": "^1.5.1",
-    "terra-draw": "^1.38.0",
+    "terra-draw": "^1.39.0",
     "terra-draw-maplibre-gl-adapter": "^1.5.0",
-    "vue": "^3.5.44",
+    "vue": "^3.5.45",
     "vue-router": "^5.4.0"
   },
   "devDependencies": {
-    "@iconify-json/lucide": "^1.2.147",
+    "@iconify-json/lucide": "^1.2.151",
     "@vitejs/plugin-vue": "^6.0.10",
-    "tailwindcss": "^4.3.3",
-    "vite": "^8.3.5",
-    "vue-tsc": "^3.3.13"
+    "tailwindcss": "^4.3.4",
+    "vite": "^8.3.6",
+    "vue-tsc": "^3.3.14"
   }
 }
