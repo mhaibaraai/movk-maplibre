@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev"
+    "dev": "nuxt dev",
+    "preview": "wrangler dev --local",
+    "deploy": "wrangler deploy"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.122",
@@ -14,18 +16,18 @@
     "@iconify-json/simple-icons": "^1.2.103",
     "@iconify-json/vscode-icons": "^1.2.100",
     "@maplibre/maplibre-gl-style-spec": "^26.9.0",
+    "@modelcontextprotocol/server": "2.4.0",
     "@movk/maplibre": "workspace:*",
-    "@movk/nuxt-docs": "^3.0.6",
+    "@movk/nuxt-docs": "^3.0.7",
     "@nuxt/a11y": "^1.0.0-alpha.1",
     "@nuxt/content": "^3.17.0",
     "@nuxtjs/i18n": "^10.6.0",
     "@shikijs/engine-javascript": "^4.6.0",
     "@shikijs/langs": "^4.6.0",
     "@shikijs/themes": "^4.6.0",
-    "@vercel/analytics": "^2.0.1",
-    "@vercel/speed-insights": "^2.0.0",
-    "ai": "^7.0.154",
-    "maplibre-gl": "^6.16.0",
+    "agents": "0.34.0",
+    "ai": "^7.0.179",
+    "maplibre-gl": "^6.19.0",
     "nuxt": "^4.6.4",
     "nuxt-component-meta": "^0.19.0",
     "prettier": "^3.10.1",
@@ -34,5 +36,8 @@
     "terra-draw-maplibre-gl-adapter": "^1.5.0",
     "vue-component-meta": "^3.3.14",
     "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "wrangler": "4.166.0"
   }
 }
