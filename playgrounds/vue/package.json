@@ -10,7 +10,7 @@
   "dependencies": {
     "@maplibre/maplibre-gl-style-spec": "^26.9.0",
     "@movk/maplibre": "workspace:*",
-    "@nuxt/ui": "^4.13.0",
+    "@nuxt/ui": "^4.13.1",
     "maplibre-gl": "^6.16.0",
     "ofetch": "^1.5.1",
     "terra-draw": "^1.40.0",
